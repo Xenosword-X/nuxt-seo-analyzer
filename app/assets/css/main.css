@@ -1,2 +1,151 @@
 @import "tailwindcss";
 @import "@nuxt/ui";
+
+/* ===== Brand Design System ===== */
+:root {
+  --brand-from: #4f46e5;   /* indigo-600 */
+  --brand-to: #7c3aed;     /* violet-600 */
+  --brand-soft-from: #eef2ff; /* indigo-50 */
+  --brand-soft-to: #f5f3ff;   /* violet-50 */
+}
+
+/* ===== Global Page Background ===== */
+body {
+  background: linear-gradient(135deg, #f8fafc 0%, #f5f3ff 50%, #eef2ff 100%);
+  min-height: 100vh;
+}
+
+/* ===== Gradient Text Utility ===== */
+.gradient-text {
+  background: linear-gradient(135deg, var(--brand-from), var(--brand-to));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ===== Brand Gradient Button ===== */
+.btn-brand {
+  background: linear-gradient(135deg, var(--brand-from), var(--brand-to));
+  box-shadow: 0 4px 15px rgba(124, 58, 237, 0.35);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+.btn-brand:hover {
+  box-shadow: 0 6px 20px rgba(124, 58, 237, 0.5);
+  transform: translateY(-1px);
+}
+
+/* ===== Login Page ===== */
+.login-bg {
+  background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+}
+
+.login-blob-violet {
+  background: radial-gradient(circle, #7c3aed, transparent);
+}
+
+.login-blob-indigo {
+  background: radial-gradient(circle, #4f46e5, transparent);
+}
+
+.login-blob-purple {
+  background: radial-gradient(circle, #a78bfa, transparent);
+}
+
+.login-card {
+  backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 24px;
+  padding: 40px;
+}
+
+.login-icon {
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  box-shadow: 0 8px 32px rgba(124, 58, 237, 0.5);
+}
+
+.login-subtitle {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.login-feature-text {
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.login-terms {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+/* Google 登入按鈕 */
+.btn-google {
+  background: #ffffff;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+.btn-google:hover:not(:disabled) {
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4);
+  transform: translateY(-2px);
+}
+.btn-google:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+.btn-google:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ===== Animated Floating Blobs ===== */
+@keyframes blob-float {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33%       { transform: translate(20px, -20px) scale(1.05); }
+  66%       { transform: translate(-15px, 15px) scale(0.95); }
+}
+.blob-animate {
+  animation: blob-float 8s ease-in-out infinite;
+}
+.blob-animate-delay {
+  animation: blob-float 10s ease-in-out infinite reverse;
+}
+
+/* ===== Card Elevation ===== */
+.card-elevated {
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 16px rgba(79, 70, 229, 0.06);
+  border: 1px solid rgba(79, 70, 229, 0.08) !important;
+  transition: box-shadow 0.2s ease;
+}
+.card-elevated:hover {
+  box-shadow: 0 2px 6px rgba(0,0,0,0.06), 0 8px 24px rgba(79, 70, 229, 0.1);
+}
+
+/* ===== Fade-in Animation ===== */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-up {
+  animation: fade-up 0.4s ease both;
+}
+.animate-fade-up-delay-1 { animation-delay: 0.1s; }
+.animate-fade-up-delay-2 { animation-delay: 0.2s; }
+.animate-fade-up-delay-3 { animation-delay: 0.3s; }
+
+/* ===== Score Bar ===== */
+.score-bar-track {
+  background: rgba(0, 0, 0, 0.06);
+  border-radius: 9999px;
+  overflow: hidden;
+}
+.score-bar-fill {
+  height: 100%;
+  border-radius: 9999px;
+  transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ===== Status Pill ===== */
+.status-good  { background: #dcfce7; color: #15803d; }
+.status-warn  { background: #fef9c3; color: #a16207; }
+.status-error { background: #fee2e2; color: #dc2626; }
