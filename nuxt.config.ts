@@ -9,19 +9,13 @@ export default defineNuxtConfig({
     preset: 'cloudflare-pages',
   },
 
+  // @nuxtjs/supabase 的自動重定向由 middleware/auth.global.ts 處理
   supabase: {
-    redirectOptions: {
-      login: '/',
-      callback: '/confirm',
-      exclude: ['/'],
-    },
-  },
-
-  router: {
-    middleware: ['auth'],
+    redirect: false,
   },
 
   runtimeConfig: {
+    // server-only：不暴露給前端
     openaiApiKey: '',
     serpApiKeys: '',
     apifyKeys: '',
