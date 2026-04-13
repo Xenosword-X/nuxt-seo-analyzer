@@ -54,6 +54,7 @@
             <p class="text-sm text-gray-500">最多可選 {{ maxSelect }} 頁</p>
             <UButton
               :disabled="selected.size === 0"
+              :loading="loading"
               @click="startAnalysis"
             >
               開始分析（{{ selected.size }} 頁）
@@ -116,9 +117,31 @@ function clearAll() {
   selected.value = new Set()
 }
 
-function startAnalysis() {
-  // Phase 2 實作：呼叫 /api/analyze/run
-  console.log('選取的頁面：', [...selected.value])
-  alert(`Phase 2 待實作：將分析 ${selected.value.size} 個頁面`)
+const loading = ref(false)
+
+async function startAnalysis() {
+  if (selected.value.size === 0) return
+
+  const supabase = useSupabaseClient()
+  const { data } = await supabase.auth.getSession()
+  const token = data.session?.access_token
+  if (!token) return
+
+  loading.value = true
+  try {
+    const result = await $fetch<{ sessionId: string }>('/api/analyze/run', {
+      method: 'POST',
+      headers: { authorization: `Bearer ${token}` },
+      body: {
+        domain: discoverData.value?.domain ?? '',
+        urls: [...selected.value],
+      },
+    })
+    await navigateTo(`/analyze/running?sessionId=${result.sessionId}`)
+  } catch (e: any) {
+    alert(e?.data?.message ?? '分析啟動失敗，請稍後再試')
+  } finally {
+    loading.value = false
+  }
 }
 </script>

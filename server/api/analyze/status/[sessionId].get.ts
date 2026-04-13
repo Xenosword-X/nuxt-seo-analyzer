@@ -1,0 +1,37 @@
+// server/api/analyze/status/[sessionId].get.ts
+export default defineEventHandler(async (event) => {
+  const sessionId = getRouterParam(event, 'sessionId')
+  if (!sessionId) throw createError({ statusCode: 400, message: '缺少 sessionId' })
+
+  const token = getHeader(event, 'authorization')?.replace('Bearer ', '')
+  if (!token) throw createError({ statusCode: 401, message: '未登入' })
+
+  const supabase = useServerSupabase()
+  const { data: { user }, error: authError } = await supabase.auth.getUser(token)
+  if (authError || !user) throw createError({ statusCode: 401, message: '無效的 Token' })
+
+  const { data: session } = await supabase
+    .from('analysis_sessions')
+    .select('*')
+    .eq('id', sessionId)
+    .eq('user_id', user.id)
+    .single()
+
+  if (!session) throw createError({ statusCode: 404, message: '找不到分析工作階段' })
+
+  const { data: analyses } = await supabase
+    .from('page_analyses')
+    .select('*')
+    .eq('session_id', sessionId)
+    .order('analyzed_at', { ascending: true })
+
+  return {
+    status: session.status,
+    domain: session.domain,
+    progress: {
+      completed: (analyses ?? []).length,
+      total: session.page_count,
+    },
+    analyses: analyses ?? [],
+  }
+})
