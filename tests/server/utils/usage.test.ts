@@ -2,7 +2,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 // Mock useServerSupabase
-vi.mock('~/server/utils/supabase', () => ({
+vi.mock('../../../server/utils/supabase', () => ({
   useServerSupabase: vi.fn(),
 }))
 
@@ -13,8 +13,8 @@ vi.stubGlobal('createError', (opts: { statusCode: number; message: string }) => 
   return err
 })
 
-import { getUsage, incrementUsage } from '~/server/utils/usage'
-import { useServerSupabase } from '~/server/utils/supabase'
+import { getUsage, incrementUsage } from '../../../server/utils/usage'
+import { useServerSupabase } from '../../../server/utils/supabase'
 
 function makeSupabaseMock(existingRow: any) {
   const single = vi.fn().mockResolvedValue({ data: existingRow, error: null })

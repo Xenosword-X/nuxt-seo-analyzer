@@ -1,8 +1,4 @@
-import { fetchSitemapUrls } from '~/server/utils/discovery/sitemap'
-import { fetchHomepageLinks } from '~/server/utils/discovery/homepage'
-import { incrementUsage } from '~/server/utils/usage'
-import { useServerSupabase } from '~/server/utils/supabase'
-
+// server/api/analyze/discover.post.ts
 interface DiscoverBody {
   domain: string
 }
@@ -16,7 +12,6 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, message: '請輸入網域' })
   }
 
-  // 正規化網域
   let domain = body.domain.trim()
   if (!domain.startsWith('http')) domain = `https://${domain}`
 
@@ -26,7 +21,6 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, message: '網域格式不正確' })
   }
 
-  // 驗證登入並消耗每日額度
   const token = getHeader(event, 'authorization')?.replace('Bearer ', '')
   if (!token) throw createError({ statusCode: 401, message: '未登入' })
 
@@ -35,13 +29,11 @@ export default defineEventHandler(async (event) => {
 
   await incrementUsage(user.id, Number(config.appDailyDomainLimit))
 
-  // 平行掃描 sitemap 與首頁
   const [sitemapUrls, homepageLinks] = await Promise.all([
     fetchSitemapUrls(domain),
     fetchHomepageLinks(domain),
   ])
 
-  // 合併去重（sitemap 優先）
   const seen = new Set<string>()
   const pages: Array<{ url: string; lastmod?: string; source: 'sitemap' | 'homepage' }> = []
 

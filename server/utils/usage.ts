@@ -1,5 +1,5 @@
 // server/utils/usage.ts
-import { useServerSupabase } from '~/server/utils/supabase'
+import { useServerSupabase } from './supabase'
 
 export interface UsageInfo {
   used: number

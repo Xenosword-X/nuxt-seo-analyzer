@@ -1,7 +1,4 @@
 // server/api/usage/increment.post.ts
-import { incrementUsage } from '~/server/utils/usage'
-import { useServerSupabase } from '~/server/utils/supabase'
-
 export default defineEventHandler(async (event) => {
   const supabase = useServerSupabase()
   const config = useRuntimeConfig()
