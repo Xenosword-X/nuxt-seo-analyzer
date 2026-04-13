@@ -45,12 +45,33 @@
         <p v-if="errorMsg" class="text-sm text-red-500 mt-2">{{ errorMsg }}</p>
       </UCard>
 
-      <!-- 歷史紀錄（Phase 3 實作） -->
+      <!-- 最近分析紀錄 -->
       <UCard>
         <template #header>
-          <h2 class="font-semibold text-gray-800">最近分析紀錄</h2>
+          <div class="flex items-center justify-between">
+            <h2 class="font-semibold text-gray-800">最近分析紀錄</h2>
+            <UButton variant="ghost" size="xs" @click="navigateTo('/history')">查看全部</UButton>
+          </div>
         </template>
-        <p class="text-gray-400 text-sm">（歷史紀錄功能將在 Phase 3 加入）</p>
+
+        <div v-if="recentSessions.length === 0" class="text-gray-400 text-sm py-2">
+          尚無分析紀錄
+        </div>
+
+        <div v-else class="divide-y">
+          <div
+            v-for="session in recentSessions"
+            :key="session.id"
+            class="flex items-center justify-between py-3 cursor-pointer hover:bg-gray-50 rounded-lg px-2 transition-colors"
+            @click="navigateTo(`/analyze/result/${session.id}`)"
+          >
+            <div>
+              <p class="text-sm font-medium text-gray-800">{{ session.domain }}</p>
+              <p class="text-xs text-gray-400">{{ formatHistoryDate(session.created_at) }} ｜ {{ session.page_count }} 頁</p>
+            </div>
+            <UIcon name="i-heroicons-chevron-right" class="text-gray-300" />
+          </div>
+        </div>
       </UCard>
 
     </div>
@@ -65,6 +86,26 @@ const errorMsg = ref('')
 const used = ref(0)
 const limit = ref(5)
 const remaining = computed(() => Math.max(0, limit.value - used.value))
+
+const recentSessions = ref<any[]>([])
+
+function formatHistoryDate(ts: string) {
+  return new Date(ts).toLocaleString('zh-TW', {
+    month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit',
+  })
+}
+
+async function loadRecentSessions() {
+  const token = await getToken()
+  if (!token) return
+  try {
+    const result = await $fetch<{ sessions: any[] }>('/api/history?limit=5', {
+      headers: { authorization: `Bearer ${token}` },
+    })
+    recentSessions.value = result.sessions
+  } catch {}
+}
 
 async function getToken(): Promise<string | null> {
   const { data } = await supabase.auth.getSession()
@@ -114,5 +155,8 @@ async function signOut() {
   navigateTo('/')
 }
 
-onMounted(loadUsage)
+onMounted(() => {
+  loadUsage()
+  loadRecentSessions()
+})
 </script>
