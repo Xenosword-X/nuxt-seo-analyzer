@@ -25,8 +25,13 @@
 
 - 遞迴爬蟲（無 sitemap 的網站不支援全站分析，維持僅掃首頁連結的備援）
 - Playwright 真瀏覽器降級（Cloudflare Workers 無法執行；三引擎全失敗則回傳 `null`）
-- 分析結果匯出（CSV / PDF）
+- PDF 匯出（若未來需要，用瀏覽器 `window.print()` + print CSS 實作）
 - 背景任務恢復（用戶關閉瀏覽器後不會自動續跑）
+
+### 附加功能（本次範圍內）
+
+- **CSV 匯出**：所有頁面指標以表格形式匯出，供 Excel / Google Sheets 分析
+- **Markdown 匯出**：AI 整站報告 + 摘要表格，供貼入 Notion / 客戶報告
 
 ---
 
@@ -479,7 +484,101 @@ SUPABASE_SERVICE_ROLE_KEY=
 
 ---
 
-## 十七、向後相容與資料遷移
+## 十七、結果匯出（CSV + Markdown）
+
+### 位置
+
+`result/[sessionId].vue` 頁面右上角新增下拉選單「匯出」：
+- 📊 匯出 CSV
+- 📝 匯出 Markdown
+
+### CSV 格式
+
+單一檔案，UTF-8 with BOM（確保 Excel 正確顯示中文）。
+
+**檔名：** `{domain}_{sessionId前8碼}_{YYYYMMDD}.csv`
+
+**欄位（每頁一列）：**
+
+```csv
+URL,Title,Description,H1數量,CWV總分,LCP(ms),CLS,TBT(ms),索引狀態,Schema類型,圖片缺alt數,問題總數
+https://example.com/,首頁,描述內容,1,85,1800,0.05,120,已收錄,Article,0,2
+https://example.com/blog,部落格,...,1,72,2400,0.12,180,已收錄,,3,5
+```
+
+頂部另加 3 行 metadata（以 `#` 開頭的註解列，Excel 會當作文字顯示）：
+```
+# 網域：example.com
+# 分析時間：2026-04-14 10:32
+# 整站收錄：1,250 頁 / 45 圖（SerpApi）
+URL,Title,Description,...
+```
+
+### Markdown 格式
+
+**檔名：** `{domain}_{sessionId前8碼}_{YYYYMMDD}.md`
+
+**結構：**
+
+```markdown
+# SEO 分析報告：example.com
+
+> 分析時間：2026-04-14 10:32
+> 分析頁數：28 頁
+
+## 整站 Google 收錄
+
+| 項目 | 數量 |
+|------|------|
+| 網頁收錄 | 1,250 |
+| 圖片收錄 | 45 |
+| 查詢引擎 | SerpApi |
+
+## AI 健診摘要
+
+（此處放入 session.ai_report 原文，已是 markdown 格式）
+
+## 各頁指標摘要
+
+| URL | CWV 總分 | 索引 | 問題數 |
+|-----|---------|------|--------|
+| / | 85 | ✅ | 2 |
+| /blog | 72 | ✅ | 5 |
+| ... |
+
+## 詳細問題清單
+
+### https://example.com/
+- ⚠️ 缺少 meta description
+- ⚠️ 3 張圖片缺 alt
+
+### https://example.com/blog
+- ...
+```
+
+### 實作位置
+
+```
+server/utils/export/
+├── csv.ts          # 組 CSV 字串（純函式，好測試）
+└── markdown.ts     # 組 Markdown 字串
+
+server/api/export/
+└── [sessionId].get.ts    # Query param: ?format=csv|markdown
+                          # 回傳檔案 with Content-Disposition header
+```
+
+**實作策略：** 後端組字串 → 設定 `Content-Disposition: attachment; filename=...` → 前端用 `<a href download>` 或 `window.location.href` 觸發下載。
+
+**不需要資料庫變更**，現有 session 與 page_analyses 資料已足夠組出匯出內容。
+
+### 權限
+
+需驗證該 session 的 `user_id` = 當前登入用戶（避免用他人 sessionId 匯出資料）。
+
+---
+
+## 十八、向後相容與資料遷移
 
 - 既有資料：`page_analyses.ai_report` 既有內容保留，不清除
 - 歷史 session 顯示：舊 session 的 `site_pages_indexed` 為 `null`，UI 顯示「—」，不影響列表
