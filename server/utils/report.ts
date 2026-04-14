@@ -63,3 +63,8 @@ export async function generateAIReport(
     return '報告產生失敗（請確認 OpenAI API Key 是否正確設定）'
   }
 }
+
+// STUB: real implementation in Task E1
+export async function generateSiteReport(input: any): Promise<string> {
+  throw new Error('generateSiteReport not yet implemented (Task E1)')
+}
