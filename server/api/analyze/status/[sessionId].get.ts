@@ -26,8 +26,16 @@ export default defineEventHandler(async (event) => {
     .order('analyzed_at', { ascending: true })
 
   return {
+    id: session.id,
     status: session.status,
     domain: session.domain,
+    page_count: session.page_count,
+    created_at: session.created_at,
+    site_pages_indexed: session.site_pages_indexed ?? null,
+    site_images_indexed: session.site_images_indexed ?? null,
+    site_indexing_engine: session.site_indexing_engine ?? null,
+    site_indexing_cached: session.site_indexing_cached ?? false,
+    ai_report: session.ai_report ?? null,
     progress: {
       completed: (analyses ?? []).length,
       total: session.page_count,

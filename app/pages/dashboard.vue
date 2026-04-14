@@ -19,7 +19,14 @@
               {{ remaining }}/{{ limit }}
             </span>
           </div>
-          <UButton variant="ghost" size="sm" color="white" @click="signOut">登出</UButton>
+          <button
+            class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium text-white transition-all hover:bg-white/15 active:scale-95"
+            style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.25)"
+            @click="signOut"
+          >
+            <UIcon name="i-heroicons-arrow-right-on-rectangle" class="w-4 h-4" />
+            <span>登出</span>
+          </button>
         </div>
       </div>
     </header>
@@ -166,25 +173,34 @@ async function loadUsage() {
 }
 
 async function startDiscover() {
-  errorMsg.value = ''
+  if (!domain.value.trim() || loading.value) return
   loading.value = true
-
-  const token = await getToken()
-  if (!token) { loading.value = false; return }
-
+  errorMsg.value = ''
   try {
-    const result = await $fetch('/api/analyze/discover', {
+    const token = await getToken()
+    if (!token) return
+
+    const res = await $fetch<{
+      sessionId: string
+      domain: string
+      pageCount: number
+      totalFound: number
+      maxPages: number
+      urls: string[]
+    }>('/api/analyze/discover', {
       method: 'POST',
+      body: { domain: domain.value.trim() },
       headers: { authorization: `Bearer ${token}` },
-      body: { domain: domain.value },
     })
-    await navigateTo({
-      path: '/analyze/discover',
-      query: { data: JSON.stringify(result) },
-    })
+
+    // 存 urls 在 sessionStorage，running 頁會讀取去打 /api/analyze/run
+    sessionStorage.setItem(`analysis:${res.sessionId}`, JSON.stringify({
+      urls: res.urls, domain: res.domain, pageCount: res.pageCount, totalFound: res.totalFound,
+    }))
+
+    await navigateTo(`/analyze/running?sessionId=${res.sessionId}`)
   } catch (e: any) {
-    errorMsg.value = e?.data?.message ?? '發生錯誤，請稍後再試'
-    await loadUsage()
+    errorMsg.value = e?.data?.message || e?.message || '分析啟動失敗'
   } finally {
     loading.value = false
   }

@@ -61,3 +61,34 @@ CREATE POLICY "users_own_analyses" ON page_analyses
       SELECT id FROM analysis_sessions WHERE user_id = auth.uid()
     )
   );
+
+-- ========================================
+-- 2026-04-14 Migration：全站分析 + 整站收錄量
+-- ========================================
+
+-- 整站收錄量快取（跨用戶全域共享）
+CREATE TABLE IF NOT EXISTS domain_indexing_cache (
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  domain          TEXT UNIQUE NOT NULL,
+  pages_indexed   INT,
+  images_indexed  INT,
+  engine_used     TEXT,
+  checked_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  expires_at      TIMESTAMPTZ NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_domain_cache_lookup
+  ON domain_indexing_cache(domain, expires_at);
+
+-- 全域讀取公開、寫入限 service role
+ALTER TABLE domain_indexing_cache ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "domain_cache_read_all" ON domain_indexing_cache
+  FOR SELECT USING (true);
+
+-- analysis_sessions 擴充欄位
+ALTER TABLE analysis_sessions
+  ADD COLUMN IF NOT EXISTS site_pages_indexed   INT,
+  ADD COLUMN IF NOT EXISTS site_images_indexed  INT,
+  ADD COLUMN IF NOT EXISTS site_indexing_engine TEXT,
+  ADD COLUMN IF NOT EXISTS site_indexing_cached BOOLEAN DEFAULT FALSE,
+  ADD COLUMN IF NOT EXISTS ai_report            TEXT;

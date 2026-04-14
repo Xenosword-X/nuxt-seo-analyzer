@@ -1,4 +1,5 @@
 import type { IndexingResult } from './types'
+import { parseKeys } from '../indexing/parse-keys'
 
 interface CheckResult {
   isIndexed: boolean
@@ -9,9 +10,9 @@ export async function analyzeIndexing(url: string): Promise<IndexingResult> {
   const config = useRuntimeConfig()
   const domain = new URL(url).hostname
 
-  const serpKeys: string[] = JSON.parse((config.serpApiKeys as string) || '[]')
-  const apifyKeys: string[] = JSON.parse((config.apifyKeys as string) || '[]')
-  const scraperKeys: string[] = JSON.parse((config.scraperApiKeys as string) || '[]')
+  const serpKeys = parseKeys(config.serpApiKeys)
+  const apifyKeys = parseKeys(config.apifyKeys)
+  const scraperKeys = parseKeys(config.scraperApiKeys)
 
   if (serpKeys.length > 0) {
     const r = await checkViaSerpApi(domain, serpKeys)

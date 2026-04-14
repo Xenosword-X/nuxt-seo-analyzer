@@ -17,9 +17,16 @@
             <p class="text-white/60 text-xs">共 {{ analyses.length }} 頁分析結果</p>
           </div>
         </div>
-        <button class="text-white/70 hover:text-white text-sm transition-colors" @click="navigateTo('/history')">
-          歷史紀錄 →
-        </button>
+        <div class="flex items-center gap-3">
+          <UDropdown :items="exportItems" class="mr-4">
+            <UButton size="xs" color="white" variant="ghost" icon="i-heroicons-arrow-down-tray">
+              匯出
+            </UButton>
+          </UDropdown>
+          <button class="text-white/70 hover:text-white text-sm transition-colors" @click="navigateTo('/history')">
+            歷史紀錄 →
+          </button>
+        </div>
       </div>
     </header>
 
@@ -63,6 +70,55 @@
 
       <!-- 右欄：詳細指標 -->
       <div v-if="selected" class="flex-1 space-y-4 min-w-0 animate-fade-up">
+
+        <!-- 整站 Google 收錄概況 -->
+        <section v-if="sessionData" class="bg-linear-to-br from-white to-sky-50 rounded-2xl p-6 shadow-md ring-1 ring-sky-100">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-sm font-semibold text-gray-700 flex items-center gap-2">
+              <UIcon name="i-heroicons-globe-alt" class="w-4 h-4 text-sky-600" />
+              整站 Google 收錄概況
+            </h2>
+            <UButton size="xs" color="white" variant="ghost" icon="i-heroicons-arrow-path"
+                     :loading="refreshingIndexing" @click="refreshSiteIndexing">
+              重新查詢
+            </UButton>
+          </div>
+
+          <div v-if="sessionData.site_pages_indexed === null" class="py-3 text-center">
+            <p class="text-sm text-rose-600">⚠️ 索引查詢服務暫時無法使用</p>
+          </div>
+
+          <div v-else class="grid grid-cols-3 gap-8">
+            <div>
+              <p class="text-3xl font-bold tabular-nums"
+                 :class="sessionData.site_pages_indexed <= 1 ? 'text-rose-600' : 'text-sky-700'">
+                {{ formatNumber(sessionData.site_pages_indexed) }}
+              </p>
+              <p class="text-xs text-gray-500 mt-1">網頁收錄</p>
+              <p v-if="sessionData.site_pages_indexed <= 1" class="text-xs text-rose-500 mt-1">
+                ⚠️ 疑似未被 Google 收錄
+              </p>
+            </div>
+            <div>
+              <p class="text-3xl font-bold tabular-nums"
+                 :class="sessionData.site_images_indexed === 0 ? 'text-amber-600' : 'text-sky-700'">
+                {{ formatNumber(sessionData.site_images_indexed) }}
+              </p>
+              <p class="text-xs text-gray-500 mt-1">圖片收錄</p>
+              <p v-if="sessionData.site_images_indexed === 0" class="text-xs text-amber-600 mt-1">
+                建議補強圖片 SEO
+              </p>
+            </div>
+            <div>
+              <p class="text-3xl font-bold text-gray-700 capitalize">{{ sessionData.site_indexing_engine || '—' }}</p>
+              <p class="text-xs text-gray-500 mt-1">查詢引擎</p>
+            </div>
+          </div>
+
+          <p v-if="sessionData.site_indexing_cached" class="text-xs text-gray-400 mt-4">
+            💾 使用快取
+          </p>
+        </section>
 
         <!-- Meta Tags -->
         <div class="bg-white rounded-2xl card-elevated overflow-hidden">
@@ -258,7 +314,8 @@ const selectedIndex = ref(0)
 const selected = computed(() => analyses.value[selectedIndex.value] ?? null)
 
 const renderedReport = computed(() => {
-  const report = selected.value?.ai_report
+  // AI 報告改為整站一份，存於 session.ai_report；舊資料可能仍在 page.ai_report
+  const report = sessionData.value?.ai_report || selected.value?.ai_report
   if (!report) return '<p class="text-gray-400">（無報告）</p>'
   return marked(report) as string
 })
@@ -310,4 +367,61 @@ function pageStatusIcon(analysis: any): string {
 }
 
 onMounted(load)
+
+const refreshingIndexing = ref(false)
+
+function formatNumber(n: number | null | undefined) {
+  return n === null || n === undefined ? '—' : n.toLocaleString('en-US')
+}
+
+async function refreshSiteIndexing() {
+  if (refreshingIndexing.value) return
+  refreshingIndexing.value = true
+  try {
+    const token = (await supabase.auth.getSession()).data.session?.access_token
+    const r: any = await $fetch('/api/domain/indexing', {
+      method: 'POST',
+      body: { domain: sessionData.value.domain, forceRefresh: true },
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    if (sessionData.value) {
+      sessionData.value.site_pages_indexed = r.pagesIndexed
+      sessionData.value.site_images_indexed = r.imagesIndexed
+      sessionData.value.site_indexing_engine = r.engineUsed
+      sessionData.value.site_indexing_cached = r.cached
+    }
+  } finally {
+    refreshingIndexing.value = false
+  }
+}
+
+const exportItems = [[
+  {
+    label: '匯出 CSV',
+    icon: 'i-heroicons-table-cells',
+    click: () => triggerExport('csv'),
+  },
+  {
+    label: '匯出 Markdown',
+    icon: 'i-heroicons-document-text',
+    click: () => triggerExport('markdown'),
+  },
+]]
+
+async function triggerExport(format: 'csv' | 'markdown') {
+  if (!sessionData.value?.id) return
+  const token = (await supabase.auth.getSession()).data.session?.access_token
+  const url = `/api/export/${sessionData.value.id}?format=${format}`
+  const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } })
+  if (!res.ok) return
+  const blob = await res.blob()
+  const filename =
+    res.headers.get('content-disposition')?.match(/filename="([^"]+)"/)?.[1]
+    || `export.${format}`
+  const a = document.createElement('a')
+  a.href = URL.createObjectURL(blob)
+  a.download = filename
+  a.click()
+  URL.revokeObjectURL(a.href)
+}
 </script>

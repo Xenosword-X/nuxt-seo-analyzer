@@ -11,7 +11,7 @@ export default defineEventHandler(async (event) => {
 
   const { data: sessions } = await supabase
     .from('analysis_sessions')
-    .select('id, domain, status, page_count, created_at')
+    .select('id, domain, status, page_count, created_at, site_pages_indexed, site_images_indexed, site_indexing_engine')
     .eq('user_id', user.id)
     .eq('status', 'done')
     .order('created_at', { ascending: false })

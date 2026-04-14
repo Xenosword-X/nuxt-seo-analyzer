@@ -25,6 +25,8 @@ export default defineNuxtConfig({
     pagespeedApiKey: '',
     supabaseServiceRoleKey: '',
     appDailyDomainLimit: '5',
-    appMaxPagesPerRun: '10',
+    appMaxPagesPerRun: '30',
+    domainCacheTtlHours: '24',
+    siteIndexingEnabled: 'true',
   },
 })

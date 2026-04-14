@@ -65,5 +65,6 @@ export interface PageAnalysisResult {
   headings: HeadingsResult
   images: ImagesResult
   indexing: IndexingResult
-  aiReport: string
+  /** @deprecated 2026-04-14：AI 報告改為整站一份（存於 analysis_sessions.ai_report） */
+  aiReport?: string | null
 }
