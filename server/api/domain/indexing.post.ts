@@ -1,6 +1,7 @@
 import { normalizeDomain } from '../../utils/domain'
 import { checkDomainIndexing } from '../../utils/indexing/engine'
 import { readCache, writeCache } from '../../utils/indexing/cache'
+import { parseKeys } from '../../utils/indexing/parse-keys'
 
 interface Body {
   domain: string
@@ -41,9 +42,9 @@ export default defineEventHandler(async (event) => {
   }
 
   const keys = {
-    serpapi: JSON.parse((config.serpApiKeys as string) || '[]'),
-    scraperapi: JSON.parse((config.scraperApiKeys as string) || '[]'),
-    apify: JSON.parse((config.apifyKeys as string) || '[]'),
+    serpapi: parseKeys(config.serpApiKeys),
+    scraperapi: parseKeys(config.scraperApiKeys),
+    apify: parseKeys(config.apifyKeys),
   }
 
   const result = await checkDomainIndexing(domain, keys)
