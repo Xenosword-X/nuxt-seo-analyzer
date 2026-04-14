@@ -2,16 +2,18 @@
 @import "@nuxt/ui";
 
 /* ===== Brand Design System ===== */
+/* 主題：Professional Sky-Blue（職業級天藍）
+   適合 SEO / 分析工具：天藍 = 網路/搜尋引擎聯想，技術感強，專業可信 */
 :root {
-  --brand-from: #4f46e5;   /* indigo-600 */
-  --brand-to: #7c3aed;     /* violet-600 */
-  --brand-soft-from: #eef2ff; /* indigo-50 */
-  --brand-soft-to: #f5f3ff;   /* violet-50 */
+  --brand-from: #0369a1;      /* sky-700 — 深沉專業藍 */
+  --brand-to:   #0ea5e9;      /* sky-500 — 明亮清透藍 */
+  --brand-soft-from: #f0f9ff; /* sky-50  */
+  --brand-soft-to:   #ecfeff; /* cyan-50 */
 }
 
 /* ===== Global Page Background ===== */
 body {
-  background: linear-gradient(135deg, #f8fafc 0%, #f5f3ff 50%, #eef2ff 100%);
+  background: linear-gradient(135deg, #f8fafc 0%, #f0f9ff 55%, #ecfeff 100%);
   min-height: 100vh;
 }
 
@@ -26,31 +28,37 @@ body {
 /* ===== Brand Gradient Button ===== */
 .btn-brand {
   background: linear-gradient(135deg, var(--brand-from), var(--brand-to));
-  box-shadow: 0 4px 15px rgba(124, 58, 237, 0.35);
+  box-shadow: 0 4px 15px rgba(3, 105, 161, 0.30);
   transition: all 0.2s ease;
   cursor: pointer;
 }
 .btn-brand:hover {
-  box-shadow: 0 6px 20px rgba(124, 58, 237, 0.5);
+  box-shadow: 0 6px 20px rgba(3, 105, 161, 0.45);
   transform: translateY(-1px);
 }
 
 /* ===== Login Page ===== */
+/* 深海軍藍背景，呼應資料分析工具的專業感 */
 .login-bg {
-  background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+  background: linear-gradient(135deg, #020617 0%, #0c1a2e 50%, #0f172a 100%);
 }
 
-.login-blob-violet {
-  background: radial-gradient(circle, #7c3aed, transparent);
+.login-blob-primary {
+  background: radial-gradient(circle, #0369a1, transparent);
 }
 
-.login-blob-indigo {
-  background: radial-gradient(circle, #4f46e5, transparent);
+.login-blob-secondary {
+  background: radial-gradient(circle, #0891b2, transparent);
 }
 
-.login-blob-purple {
-  background: radial-gradient(circle, #a78bfa, transparent);
+.login-blob-accent {
+  background: radial-gradient(circle, #38bdf8, transparent);
 }
+
+/* 保留舊 class 名稱以向下相容 */
+.login-blob-violet   { background: radial-gradient(circle, #0369a1, transparent); }
+.login-blob-indigo   { background: radial-gradient(circle, #0891b2, transparent); }
+.login-blob-purple   { background: radial-gradient(circle, #38bdf8, transparent); }
 
 .login-card {
   backdrop-filter: blur(20px);
@@ -61,8 +69,8 @@ body {
 }
 
 .login-icon {
-  background: linear-gradient(135deg, #4f46e5, #7c3aed);
-  box-shadow: 0 8px 32px rgba(124, 58, 237, 0.5);
+  background: linear-gradient(135deg, #0369a1, #0ea5e9);
+  box-shadow: 0 8px 32px rgba(14, 165, 233, 0.45);
 }
 
 .login-subtitle {
@@ -113,12 +121,12 @@ body {
 
 /* ===== Card Elevation ===== */
 .card-elevated {
-  box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 16px rgba(79, 70, 229, 0.06);
-  border: 1px solid rgba(79, 70, 229, 0.08) !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 16px rgba(3, 105, 161, 0.07);
+  border: 1px solid rgba(3, 105, 161, 0.09) !important;
   transition: box-shadow 0.2s ease;
 }
 .card-elevated:hover {
-  box-shadow: 0 2px 6px rgba(0,0,0,0.06), 0 8px 24px rgba(79, 70, 229, 0.1);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.06), 0 8px 24px rgba(3, 105, 161, 0.12);
 }
 
 /* ===== Fade-in Animation ===== */

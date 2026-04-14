@@ -1,8 +1,8 @@
 <template>
-  <div class="min-h-screen" style="background: linear-gradient(135deg, #f8fafc 0%, #f5f3ff 60%, #eef2ff 100%)">
+  <div class="min-h-screen" style="background: linear-gradient(135deg, #f8fafc 0%, #f0f9ff 55%, #ecfeff 100%)">
 
     <!-- Brand Header -->
-    <header style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); box-shadow: 0 4px 20px rgba(79,70,229,0.3)">
+    <header style="background: linear-gradient(135deg, #0c4a6e 0%, #0369a1 100%); box-shadow: 0 4px 20px rgba(3,105,161,0.28)">
       <div class="max-w-2xl mx-auto px-8 py-4 flex items-center justify-between">
         <div class="flex items-center gap-3">
           <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: rgba(255,255,255,0.2)">
@@ -74,18 +74,18 @@
         <!-- Card header -->
         <div class="flex items-center justify-between px-6 py-4 border-b border-gray-50">
           <div class="flex items-center gap-2">
-            <UIcon name="i-heroicons-clock" class="w-4 h-4 text-violet-500" />
+            <UIcon name="i-heroicons-clock" class="w-4 h-4 text-sky-500" />
             <h2 class="font-semibold text-gray-800 text-sm">最近分析紀錄</h2>
           </div>
-          <button class="text-xs text-violet-600 hover:text-violet-700 font-medium transition-colors" @click="navigateTo('/history')">
+          <button class="text-xs text-sky-600 hover:text-sky-700 font-medium transition-colors" @click="navigateTo('/history')">
             查看全部 →
           </button>
         </div>
 
         <!-- Empty state -->
         <div v-if="recentSessions.length === 0" class="flex flex-col items-center justify-center py-10 text-center">
-          <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-3" style="background: #f5f3ff">
-            <UIcon name="i-heroicons-document-magnifying-glass" class="w-6 h-6 text-violet-400" />
+          <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-3" style="background: #f0f9ff">
+            <UIcon name="i-heroicons-document-magnifying-glass" class="w-6 h-6 text-sky-400" />
           </div>
           <p class="text-gray-400 text-sm">尚無分析紀錄</p>
           <p class="text-gray-300 text-xs mt-1">輸入網域開始您的第一次分析</p>
@@ -96,20 +96,20 @@
           <div
             v-for="session in recentSessions"
             :key="session.id"
-            class="flex items-center justify-between px-6 py-3.5 cursor-pointer group transition-colors hover:bg-violet-50/40"
+            class="flex items-center justify-between px-6 py-3.5 cursor-pointer group transition-colors hover:bg-sky-50/50"
             @click="navigateTo(`/analyze/result/${session.id}`)"
           >
             <div class="flex items-center gap-3 min-w-0">
               <div class="w-8 h-8 rounded-lg shrink-0 flex items-center justify-center"
-                   style="background: linear-gradient(135deg, #eef2ff, #f5f3ff)">
-                <UIcon name="i-heroicons-globe-alt" class="w-4 h-4 text-indigo-500" />
+                   style="background: linear-gradient(135deg, #f0f9ff, #ecfeff)">
+                <UIcon name="i-heroicons-globe-alt" class="w-4 h-4 text-sky-500" />
               </div>
               <div class="min-w-0">
                 <p class="text-sm font-medium text-gray-800 truncate">{{ session.domain }}</p>
                 <p class="text-xs text-gray-400">{{ formatHistoryDate(session.created_at) }} ｜ {{ session.page_count }} 頁</p>
               </div>
             </div>
-            <UIcon name="i-heroicons-chevron-right" class="text-gray-300 group-hover:text-violet-400 transition-colors shrink-0" />
+            <UIcon name="i-heroicons-chevron-right" class="text-gray-300 group-hover:text-sky-400 transition-colors shrink-0" />
           </div>
         </div>
       </div>

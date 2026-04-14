@@ -4,9 +4,9 @@
 
     <!-- Animated background blobs -->
     <div class="absolute inset-0 overflow-hidden pointer-events-none">
-      <div class="login-blob-violet blob-animate absolute top-[-10%] right-[-5%] w-96 h-96 rounded-full opacity-20"></div>
-      <div class="login-blob-indigo blob-animate-delay absolute bottom-[-10%] left-[-5%] w-96 h-96 rounded-full opacity-20"></div>
-      <div class="login-blob-purple blob-animate absolute top-[40%] left-[20%] w-64 h-64 rounded-full opacity-10"></div>
+      <div class="login-blob-primary blob-animate absolute top-[-10%] right-[-5%] w-96 h-96 rounded-full opacity-20"></div>
+      <div class="login-blob-secondary blob-animate-delay absolute bottom-[-10%] left-[-5%] w-96 h-96 rounded-full opacity-20"></div>
+      <div class="login-blob-accent blob-animate absolute top-[40%] left-[20%] w-64 h-64 rounded-full opacity-10"></div>
     </div>
 
     <!-- Login card -->
@@ -26,9 +26,12 @@
       </div>
 
       <!-- Features list -->
-      <div class="login-feature-text mb-8 space-y-2">
+      <div class="login-feature-text mb-8 space-y-3">
         <div v-for="feat in features" :key="feat.text" class="flex items-center gap-3 text-sm">
-          <span class="text-base">{{ feat.icon }}</span>
+          <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
+               style="background: rgba(14, 165, 233, 0.2)">
+            <UIcon :name="feat.icon" class="w-4 h-4 text-sky-300" />
+          </div>
           <span>{{ feat.text }}</span>
         </div>
       </div>
@@ -56,9 +59,9 @@ const supabase = useSupabaseClient()
 const loading = ref(false)
 
 const features = [
-  { icon: '🔍', text: 'Meta 標籤與 Schema 全面檢測' },
-  { icon: '⚡', text: 'Core Web Vitals 效能分析' },
-  { icon: '🤖', text: 'AI 中文 SEO 健診報告' },
+  { icon: 'i-heroicons-tag', text: 'Meta 標籤與 Schema 全面檢測' },
+  { icon: 'i-heroicons-bolt', text: 'Core Web Vitals 效能分析' },
+  { icon: 'i-heroicons-sparkles', text: 'AI 中文 SEO 健診報告' },
 ]
 
 async function signIn() {

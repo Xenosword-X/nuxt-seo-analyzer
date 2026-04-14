@@ -1,9 +1,9 @@
 <!-- app/pages/analyze/result/[sessionId].vue -->
 <template>
-  <div class="min-h-screen" style="background: linear-gradient(135deg, #f8fafc 0%, #f5f3ff 60%, #eef2ff 100%)">
+  <div class="min-h-screen" style="background: linear-gradient(135deg, #f8fafc 0%, #f0f9ff 55%, #ecfeff 100%)">
 
     <!-- Top nav bar -->
-    <header style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); box-shadow: 0 4px 20px rgba(79,70,229,0.3)">
+    <header style="background: linear-gradient(135deg, #0c4a6e 0%, #0369a1 100%); box-shadow: 0 4px 20px rgba(3,105,161,0.28)">
       <div class="max-w-6xl mx-auto px-6 py-3.5 flex items-center justify-between">
         <div class="flex items-center gap-3">
           <button
@@ -27,7 +27,7 @@
     <div v-if="pending" class="flex items-center justify-center py-32">
       <div class="text-center">
         <div class="w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-4 animate-pulse"
-             style="background: linear-gradient(135deg, #4f46e5, #7c3aed)">
+             style="background: linear-gradient(135deg, #0369a1, #0ea5e9)">
           <UIcon name="i-heroicons-magnifying-glass" class="w-6 h-6 text-white" />
         </div>
         <p class="text-gray-400 text-sm">載入中...</p>
@@ -44,7 +44,7 @@
           :key="analysis.id"
           class="cursor-pointer rounded-xl p-3 transition-all group"
           :class="selectedIndex === i
-            ? 'bg-white shadow-md ring-1 ring-violet-200'
+            ? 'bg-white shadow-md ring-1 ring-sky-200'
             : 'hover:bg-white/70'"
           @click="selectedIndex = i"
         >
@@ -56,7 +56,7 @@
           </div>
           <div class="flex items-center justify-between mt-1.5 ml-6">
             <p class="text-xs text-gray-400">{{ totalIssues(analysis) }} 個問題</p>
-            <span v-if="selectedIndex === i" class="w-1.5 h-1.5 rounded-full bg-violet-500"></span>
+            <span v-if="selectedIndex === i" class="w-1.5 h-1.5 rounded-full bg-sky-500"></span>
           </div>
         </div>
       </div>
@@ -192,7 +192,7 @@
                   v-for="t in selected.schema_data?.types"
                   :key="t"
                   class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                  style="background: #eef2ff; color: #4338ca"
+                  style="background: #e0f2fe; color: #0369a1"
                 >{{ t }}</span>
               </div>
               <p v-else class="text-gray-400 text-xs">未偵測到 JSON-LD</p>
@@ -229,8 +229,8 @@
         <!-- AI 報告 -->
         <div class="bg-white rounded-2xl card-elevated overflow-hidden">
           <div class="flex items-center gap-2 px-5 py-4 border-b border-gray-50"
-               style="background: linear-gradient(135deg, #faf5ff, #eef2ff)">
-            <div class="w-6 h-6 rounded-lg flex items-center justify-center" style="background: linear-gradient(135deg, #7c3aed, #4f46e5)">
+               style="background: linear-gradient(135deg, #f0f9ff, #ecfeff)">
+            <div class="w-6 h-6 rounded-lg flex items-center justify-center" style="background: linear-gradient(135deg, #0369a1, #0ea5e9)">
               <UIcon name="i-heroicons-sparkles" class="w-3.5 h-3.5 text-white" />
             </div>
             <span class="font-semibold text-gray-800 text-sm">AI 中文 SEO 健診報告</span>
