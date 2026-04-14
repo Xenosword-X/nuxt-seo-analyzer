@@ -19,8 +19,7 @@
         </div>
         <div class="flex items-center gap-2">
           <button
-            class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium text-white transition-all hover:bg-white/15 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-            style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.25)"
+            class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium text-white bg-white/10 border border-white/25 transition-all hover:bg-white/25 hover:border-white/40 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
             :disabled="exporting === 'csv'"
             @click="triggerExport('csv')"
           >
@@ -29,8 +28,7 @@
             <span>CSV</span>
           </button>
           <button
-            class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium text-white transition-all hover:bg-white/15 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-            style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.25)"
+            class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium text-white bg-white/10 border border-white/25 transition-all hover:bg-white/25 hover:border-white/40 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
             :disabled="exporting === 'markdown'"
             @click="triggerExport('markdown')"
           >
@@ -93,7 +91,7 @@
               <UIcon name="i-heroicons-globe-alt" class="w-4 h-4 text-sky-600" />
               整站 Google 收錄概況
             </h2>
-            <UButton size="xs" color="white" variant="ghost" icon="i-heroicons-arrow-path"
+            <UButton size="xs" color="neutral" variant="ghost" icon="i-heroicons-arrow-path"
                      :loading="refreshingIndexing" @click="refreshSiteIndexing">
               重新查詢
             </UButton>
