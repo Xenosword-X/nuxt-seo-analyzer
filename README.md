@@ -11,10 +11,14 @@
 ### 核心特色
 
 - 全繁體中文 UI 與分析報告
-- GPT-4o-mini 自動產生個人化中文 SEO 健診建議
-- 三引擎降級索引檢查（SerpApi → Apify → ScraperAPI），多組金鑰輪轉，穩定不中斷
-- 7 大 SEO 指標一次完整掃描
-- 歷史紀錄追蹤，可回顧過去分析結果
+- 輸入網域**自動全站分析**（最多 30 頁），無需手動選頁
+- **SSE 即時串流**：每完成一頁立即推送，不必等全部跑完
+- **整站 Google 收錄量**：整站網頁 / 圖片收錄統計（24 小時快取）
+- GPT-4o-mini **整站一份**個人化中文 SEO 健診報告
+- 三引擎降級索引檢查（SerpApi → ScraperAPI → Apify），多組金鑰輪轉
+- 7 大 SEO 指標一次完整掃描（每頁）
+- 結果**匯出 CSV / Markdown**
+- 歷史紀錄追蹤，含每筆收錄量摘要
 
 ---
 
@@ -44,7 +48,7 @@
 |------|------|
 | **Meta 標籤** | 掃描 title、description、og:title、og:description、og:image、canonical、robots meta，並給出 0-100 分評分 |
 | **Core Web Vitals** | 呼叫 Google PageSpeed Insights API，取得 FCP、LCP、TBT、CLS 與整體效能分數（行動版） |
-| **Google 索引狀態** | 三引擎降級檢查：SerpApi → Apify → ScraperAPI，多組 API 金鑰自動輪轉，回傳收錄狀態與收錄頁數 |
+| **Google 索引狀態** | 三引擎降級檢查：SerpApi → ScraperAPI → Apify，多組 API 金鑰自動輪轉，回傳收錄狀態與收錄頁數 |
 | **標題結構** | 分析 H1～H3 層級結構與內部連結數量，偵測缺少 H1 或 H1 重複等問題 |
 | **圖片 Alt 文字** | 掃描頁面所有圖片，列出缺少 alt 屬性的圖片 src，影響 SEO 與無障礙性 |
 | **結構化資料（Schema）** | 偵測 JSON-LD 標記，回傳所有偵測到的 @type 類型（如 Article、BreadcrumbList） |
@@ -100,7 +104,9 @@
 | Nuxt Nitro | Server routes，部署為 Cloudflare Workers |
 | [cheerio](https://cheerio.js.org) | 伺服器端 HTML 解析（meta tags、headings、images、schema） |
 | [fast-xml-parser](https://github.com/NaturalIntelligence/fast-xml-parser) | sitemap.xml 解析 |
+| [p-limit](https://github.com/sindresorhus/p-limit) | 平行批次控制（每次 5 頁） |
 | [openai](https://github.com/openai/openai-node) | GPT-4o-mini API 呼叫（中文報告產生） |
+| Server-Sent Events（SSE） | `text/event-stream` 串流推送分析進度 |
 
 ### 外部 API
 
@@ -143,19 +149,31 @@ daily_usage (
   domain_count int, UNIQUE(user_id, date)
 )
 
--- 分析工作階段
+-- 分析工作階段（含整站收錄量快照與整站 AI 報告）
 analysis_sessions (
   id uuid PK, user_id uuid FK, domain text,
-  status text, page_count int, created_at timestamptz
+  status text, page_count int, created_at timestamptz,
+  site_pages_indexed int,        -- 整站網頁收錄數
+  site_images_indexed int,       -- 整站圖片收錄數
+  site_indexing_engine text,     -- 哪一個引擎成功回傳
+  site_indexing_cached boolean,  -- 是否命中快取
+  ai_report text                 -- 整站 AI 報告（Markdown）
 )
 
--- 每頁分析結果
+-- 每頁分析結果（ai_report 欄位已 deprecated，保留向後相容）
 page_analyses (
   id uuid PK, session_id uuid FK, url text,
   meta_tags jsonb, core_web_vitals jsonb,
   robots_sitemap jsonb, schema_data jsonb,
   headings jsonb, images jsonb, indexing jsonb,
   ai_report text, analyzed_at timestamptz
+)
+
+-- 整站收錄量快取（全域共享、跨用戶，TTL 24 小時）
+domain_indexing_cache (
+  id uuid PK, domain text UNIQUE,
+  pages_indexed int, images_indexed int,
+  engine_used text, checked_at timestamptz, expires_at timestamptz
 )
 ```
 
@@ -179,20 +197,23 @@ nuxt-seo-analyzer/
 │       ├── confirm.vue               # OAuth 回呼頁
 │       ├── dashboard.vue             # 主頁（輸入網域 + 歷史）
 │       ├── analyze/
-│       │   ├── discover.vue          # 頁面選擇
-│       │   ├── running.vue           # 分析進度
+│       │   ├── running.vue           # 分析進度（SSE 即時串流）
 │       │   └── result/
-│       │       └── [sessionId].vue   # 完整報告頁
+│       │       └── [sessionId].vue   # 完整報告 + 整站收錄卡 + 匯出
 │       └── history/
-│           └── index.vue             # 歷史紀錄列表
+│           └── index.vue             # 歷史紀錄列表（含收錄摘要）
 │
 ├── server/
 │   ├── api/
 │   │   ├── analyze/
-│   │   │   ├── discover.post.ts      # 掃描 sitemap + 首頁
-│   │   │   ├── run.post.ts           # 建立 session + 背景分析
+│   │   │   ├── discover.post.ts      # 掃描 sitemap + 建 session
+│   │   │   ├── run.post.ts           # SSE 串流：分析 + 整站收錄
 │   │   │   └── status/
-│   │   │       └── [sessionId].get.ts # 查詢分析進度
+│   │   │       └── [sessionId].get.ts # 查詢分析進度（SSE fallback）
+│   │   ├── domain/
+│   │   │   └── indexing.post.ts      # 整站收錄查詢（含快取）
+│   │   ├── export/
+│   │   │   └── [sessionId].get.ts    # CSV / Markdown 匯出
 │   │   ├── usage/
 │   │   │   ├── check.get.ts          # 查詢今日用量
 │   │   │   └── increment.post.ts     # 消耗一次用量
@@ -201,23 +222,30 @@ nuxt-seo-analyzer/
 │   └── utils/
 │       ├── supabase.ts               # Server-side Supabase client
 │       ├── usage.ts                  # 用量邏輯
-│       ├── report.ts                 # GPT-4o-mini 報告產生
+│       ├── domain.ts                 # 網域正規化
+│       ├── sse.ts                    # Server-Sent Events helper
+│       ├── report.ts                 # GPT-4o-mini 整站報告
 │       ├── discovery/
 │       │   ├── sitemap.ts            # Sitemap 解析器
 │       │   └── homepage.ts           # 首頁連結抽取
-│       └── analyzers/
-│           ├── types.ts              # 共用 TypeScript 型別
-│           ├── meta.ts               # Meta tags 分析
-│           ├── cwv.ts                # Core Web Vitals
-│           ├── robots.ts             # Robots + Sitemap 驗證
-│           ├── schema.ts             # JSON-LD 偵測
-│           ├── headings.ts           # 標題結構分析
-│           ├── images.ts             # 圖片 Alt 掃描
-│           └── indexing.ts           # 三引擎索引檢查
+│       ├── analyzers/                # 七大指標（每頁）
+│       │   ├── types.ts, meta.ts, cwv.ts, robots.ts,
+│       │   ├── schema.ts, headings.ts, images.ts, indexing.ts
+│       ├── indexing/                 # 整站收錄查詢
+│       │   ├── types.ts              # 共用型別與 isQuotaError
+│       │   ├── parse-keys.ts         # 兼容 Nuxt destr 的 env 解析
+│       │   ├── serpapi.ts            # SerpApi client（主引擎）
+│       │   ├── scraperapi.ts         # ScraperAPI client（備援 1）
+│       │   ├── apify.ts              # Apify client（備援 2）
+│       │   ├── engine.ts             # 三引擎降級 orchestrator
+│       │   └── cache.ts              # 24h 快取讀寫
+│       └── export/
+│           ├── csv.ts                # CSV builder（UTF-8 BOM）
+│           └── markdown.ts           # Markdown builder
 │
 ├── supabase/
 │   └── schema.sql                    # 資料庫 DDL + RLS 政策
-├── tests/                            # Vitest 單元測試（42 tests）
+├── tests/                            # Vitest 單元測試（69 tests）
 ├── docs/superpowers/                 # 設計文件與實作計畫
 ├── nuxt.config.ts
 └── vitest.config.ts
@@ -248,7 +276,11 @@ NUXT_PAGESPEED_API_KEY=AIza...
 
 # 使用限制
 NUXT_APP_DAILY_DOMAIN_LIMIT=5
-NUXT_APP_MAX_PAGES_PER_RUN=10
+NUXT_APP_MAX_PAGES_PER_RUN=30
+
+# 全站分析設定
+NUXT_DOMAIN_CACHE_TTL_HOURS=24      # 整站收錄快取時效（小時）
+NUXT_SITE_INDEXING_ENABLED=true     # 是否啟用整站收錄查詢
 ```
 
 ---
@@ -318,19 +350,25 @@ npm run build
 
 ```
 tests/server/utils/
-├── usage.test.ts         # 用量追蹤邏輯（5 tests）
-├── sitemap.test.ts       # Sitemap 解析（5 tests）
-├── homepage.test.ts      # 首頁連結抽取（4 tests）
-└── analyzers/
-    ├── meta.test.ts      # Meta tags 分析（4 tests）
-    ├── robots.test.ts    # Robots 驗證（4 tests）
-    ├── schema.test.ts    # Schema 偵測（4 tests）
-    ├── headings.test.ts  # 標題分析（4 tests）
-    ├── images.test.ts    # 圖片 Alt 掃描（4 tests）
-    ├── indexing.test.ts  # 三引擎索引檢查（4 tests）
-    └── cwv.test.ts       # Core Web Vitals（4 tests）
+├── usage.test.ts                # 用量追蹤邏輯
+├── sitemap.test.ts              # Sitemap 解析
+├── homepage.test.ts             # 首頁連結抽取
+├── domain.test.ts               # 網域正規化
+├── sse.test.ts                  # SSE 事件格式
+├── analyzers/
+│   ├── meta.test.ts, cwv.test.ts, robots.test.ts,
+│   ├── schema.test.ts, headings.test.ts,
+│   ├── images.test.ts, indexing.test.ts
+├── indexing/
+│   ├── parse-keys.test.ts       # env 變數解析（含 Nuxt destr 相容）
+│   ├── serpapi.test.ts          # SerpApi client
+│   ├── engine.test.ts           # 三引擎降級流程
+│   └── cache.test.ts            # 整站收錄快取
+└── export/
+    ├── csv.test.ts              # CSV 匯出
+    └── markdown.test.ts         # Markdown 匯出
 
-總計：42 tests，全數通過
+總計：69 tests（17 個檔案），全數通過
 ```
 
 ---
@@ -348,6 +386,12 @@ Supabase 提供完整的 Auth（Google OAuth2）、Row Level Security、PostgreS
 
 **為什麼用 GPT-4o-mini 而非更強的模型？**
 SEO 報告生成是結構化任務，輸入資料明確（7 大指標 JSON），GPT-4o-mini 的輸出品質已足夠專業，且成本極低，適合 side project 規模。
+
+**為什麼從「每頁一份」改為「整站一份」AI 報告？**
+每頁一份 AI 報告對全站 30 頁的成本是 30 次 OpenAI 呼叫；整站彙整一次只呼叫一次，token 成本下降 ~80%，且報告更具整體觀點，更符合 SEO 顧問實務的呈現方式。
+
+**為什麼 SSE 而非輪詢？**
+30 頁分析需要 15–25 秒，輪詢每 2 秒一次會浪費頻寬與 DB 查詢；SSE 在分析事件發生當下即時推送，前端體驗更流暢。輪詢仍保留為斷線/重新整理的 fallback。
 
 ---
 
