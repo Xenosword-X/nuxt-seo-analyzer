@@ -26,6 +26,9 @@
               <p class="text-sm text-gray-500">
                 {{ formatDate(session.created_at) }} ｜ {{ session.page_count }} 頁
               </p>
+              <p v-if="session.site_pages_indexed !== null" class="text-xs text-gray-500 mt-1 tabular-nums">
+                收錄：{{ formatNumber(session.site_pages_indexed) }} 頁 / {{ formatNumber(session.site_images_indexed) }} 圖
+              </p>
             </div>
             <div class="flex items-center gap-3">
               <UBadge color="green" variant="soft">已完成</UBadge>
@@ -66,6 +69,10 @@ function formatDate(ts: string) {
     year: 'numeric', month: '2-digit', day: '2-digit',
     hour: '2-digit', minute: '2-digit',
   })
+}
+
+function formatNumber(n: number | null | undefined) {
+  return n === null || n === undefined ? '—' : n.toLocaleString('en-US')
 }
 
 onMounted(load)
