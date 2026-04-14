@@ -27,36 +27,54 @@ export default defineEventHandler(async (event) => {
   const { data: { user }, error: authError } = await supabase.auth.getUser(token)
   if (authError || !user) throw createError({ statusCode: 401, message: '無效的 Token' })
 
-  await incrementUsage(user.id, Number(config.appDailyDomainLimit))
-
+  // 先掃頁面
   const [sitemapUrls, homepageLinks] = await Promise.all([
     fetchSitemapUrls(domain),
     fetchHomepageLinks(domain),
   ])
 
   const seen = new Set<string>()
-  const pages: Array<{ url: string; lastmod?: string; source: 'sitemap' | 'homepage' }> = []
-
+  const pages: string[] = []
   for (const u of sitemapUrls) {
-    if (!seen.has(u.loc)) {
-      seen.add(u.loc)
-      pages.push({ url: u.loc, lastmod: u.lastmod, source: 'sitemap' })
-    }
+    if (!seen.has(u.loc)) { seen.add(u.loc); pages.push(u.loc) }
   }
-
   for (const link of homepageLinks) {
-    if (!seen.has(link)) {
-      seen.add(link)
-      pages.push({ url: link, source: 'homepage' })
-    }
+    if (!seen.has(link)) { seen.add(link); pages.push(link) }
   }
 
-  const limited = pages.slice(0, 100)
+  const maxPages = Number(config.appMaxPagesPerRun)
+  const totalFound = pages.length
+  const limited = pages.slice(0, maxPages)
+
+  if (limited.length === 0) {
+    throw createError({ statusCode: 404, message: '找不到可分析的頁面（無 sitemap 且首頁無內部連結）' })
+  }
+
+  // 扣額度
+  await incrementUsage(user.id, Number(config.appDailyDomainLimit))
+
+  // 建立 session
+  const { data: session, error: sessionError } = await supabase
+    .from('analysis_sessions')
+    .insert({
+      user_id: user.id,
+      domain,
+      status: 'running',
+      page_count: limited.length,
+    })
+    .select()
+    .single()
+
+  if (sessionError || !session) {
+    throw createError({ statusCode: 500, message: '建立分析工作階段失敗' })
+  }
 
   return {
+    sessionId: session.id,
     domain,
-    total: limited.length,
-    pages: limited,
-    maxSelect: Number(config.appMaxPagesPerRun),
+    pageCount: limited.length,
+    totalFound,
+    maxPages,
+    urls: limited,
   }
 })
