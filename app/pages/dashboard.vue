@@ -19,7 +19,14 @@
               {{ remaining }}/{{ limit }}
             </span>
           </div>
-          <UButton variant="ghost" size="sm" color="white" @click="signOut">登出</UButton>
+          <button
+            class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium text-white transition-all hover:bg-white/15 active:scale-95"
+            style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.25)"
+            @click="signOut"
+          >
+            <UIcon name="i-heroicons-arrow-right-on-rectangle" class="w-4 h-4" />
+            <span>登出</span>
+          </button>
         </div>
       </div>
     </header>
