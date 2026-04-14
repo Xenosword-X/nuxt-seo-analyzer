@@ -17,13 +17,28 @@
             <p class="text-white/60 text-xs">共 {{ analyses.length }} 頁分析結果</p>
           </div>
         </div>
-        <div class="flex items-center gap-3">
-          <UDropdown :items="exportItems" class="mr-4">
-            <UButton size="xs" color="white" variant="ghost" icon="i-heroicons-arrow-down-tray">
-              匯出
-            </UButton>
-          </UDropdown>
-          <button class="text-white/70 hover:text-white text-sm transition-colors" @click="navigateTo('/history')">
+        <div class="flex items-center gap-2">
+          <button
+            class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium text-white transition-all hover:bg-white/15 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+            style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.25)"
+            :disabled="exporting === 'csv'"
+            @click="triggerExport('csv')"
+          >
+            <UIcon :name="exporting === 'csv' ? 'i-heroicons-arrow-path' : 'i-heroicons-table-cells'"
+                   :class="['w-4 h-4', exporting === 'csv' && 'animate-spin']" />
+            <span>CSV</span>
+          </button>
+          <button
+            class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium text-white transition-all hover:bg-white/15 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+            style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.25)"
+            :disabled="exporting === 'markdown'"
+            @click="triggerExport('markdown')"
+          >
+            <UIcon :name="exporting === 'markdown' ? 'i-heroicons-arrow-path' : 'i-heroicons-document-text'"
+                   :class="['w-4 h-4', exporting === 'markdown' && 'animate-spin']" />
+            <span>Markdown</span>
+          </button>
+          <button class="ml-2 text-white/70 hover:text-white text-sm transition-colors" @click="navigateTo('/history')">
             歷史紀錄 →
           </button>
         </div>
@@ -395,33 +410,30 @@ async function refreshSiteIndexing() {
   }
 }
 
-const exportItems = [[
-  {
-    label: '匯出 CSV',
-    icon: 'i-heroicons-table-cells',
-    click: () => triggerExport('csv'),
-  },
-  {
-    label: '匯出 Markdown',
-    icon: 'i-heroicons-document-text',
-    click: () => triggerExport('markdown'),
-  },
-]]
+const exporting = ref<'csv' | 'markdown' | null>(null)
 
 async function triggerExport(format: 'csv' | 'markdown') {
-  if (!sessionData.value?.id) return
-  const token = (await supabase.auth.getSession()).data.session?.access_token
-  const url = `/api/export/${sessionData.value.id}?format=${format}`
-  const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } })
-  if (!res.ok) return
-  const blob = await res.blob()
-  const filename =
-    res.headers.get('content-disposition')?.match(/filename="([^"]+)"/)?.[1]
-    || `export.${format}`
-  const a = document.createElement('a')
-  a.href = URL.createObjectURL(blob)
-  a.download = filename
-  a.click()
-  URL.revokeObjectURL(a.href)
+  if (!sessionData.value?.id || exporting.value) return
+  exporting.value = format
+  try {
+    const token = (await supabase.auth.getSession()).data.session?.access_token
+    const url = `/api/export/${sessionData.value.id}?format=${format}`
+    const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } })
+    if (!res.ok) {
+      console.error('Export failed:', res.status, await res.text())
+      return
+    }
+    const blob = await res.blob()
+    const filename =
+      res.headers.get('content-disposition')?.match(/filename="([^"]+)"/)?.[1]
+      || `export.${format}`
+    const a = document.createElement('a')
+    a.href = URL.createObjectURL(blob)
+    a.download = filename
+    a.click()
+    URL.revokeObjectURL(a.href)
+  } finally {
+    exporting.value = null
+  }
 }
 </script>
