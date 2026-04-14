@@ -13,9 +13,11 @@ export interface EngineCheckResult {
   imagesIndexed: number
 }
 
+// 配額耗盡的關鍵字（觸發下一把 key）。不含 'token' / '401' / 'unauthorized'，避免
+// 一般認證設定錯誤被靜默當成配額問題；真正配額錯誤通常含 429 / quota / limit / 402 / 403。
 export const QUOTA_KEYWORDS = [
-  '429', 'quota', 'limit', '403', '402', '401',
-  'unauthorized', 'not-enough-usage', 'token',
+  '429', 'quota', 'limit', '402', '403',
+  'not-enough-usage', 'rate limit', 'rate_limit', 'rate-limited',
 ]
 
 export function isQuotaError(message: string): boolean {

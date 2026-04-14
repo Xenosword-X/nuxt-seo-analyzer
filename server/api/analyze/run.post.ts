@@ -1,6 +1,6 @@
 // server/api/analyze/run.post.ts
 import pLimit from 'p-limit'
-import { startSse, type SseWriter } from '../../utils/sse'
+import { openSse, type SseWriter } from '../../utils/sse'
 import { normalizeDomain } from '../../utils/domain'
 import { checkDomainIndexing } from '../../utils/indexing/engine'
 import { readCache, writeCache } from '../../utils/indexing/cache'
@@ -33,16 +33,27 @@ export default defineEventHandler(async (event) => {
   if (authError || !user) throw createError({ statusCode: 401, message: '無效的 Token' })
 
   const config = useRuntimeConfig()
-  const writer = startSse(event)
+  const { writer, response } = openSse(event)
 
-  try {
-    await runSseAnalysis(writer, supabase, config, body)
-  } catch (e: any) {
-    console.error('SSE run failed:', e)
-    writer.send('fatal_error', { message: String(e?.message || e) })
-  } finally {
-    writer.close()
-  }
+  // 背景執行；完成或失敗都在內部呼叫 writer.close()
+  ;(async () => {
+    try {
+      await runSseAnalysis(writer, supabase, config, body)
+    } catch (e: any) {
+      console.error('SSE run failed:', e)
+      // [C3] 把 session 狀態寫回 error，避免永遠卡在 running
+      try {
+        await supabase.from('analysis_sessions')
+          .update({ status: 'error' })
+          .eq('id', body.sessionId)
+      } catch { /* noop */ }
+      try { await writer.send('fatal_error', { message: String(e?.message || e) }) } catch { /* noop */ }
+    } finally {
+      try { await writer.close() } catch { /* noop */ }
+    }
+  })()
+
+  return response.send()
 })
 
 async function runSseAnalysis(

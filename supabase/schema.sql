@@ -80,10 +80,17 @@ CREATE TABLE IF NOT EXISTS domain_indexing_cache (
 CREATE INDEX IF NOT EXISTS idx_domain_cache_lookup
   ON domain_indexing_cache(domain, expires_at);
 
--- 全域讀取公開、寫入限 service role
+-- 全域讀取公開；寫入只允許 service role（service role 繞過 RLS）
+-- 顯式封鎖 anon / authenticated 的寫入，避免快取被污染
 ALTER TABLE domain_indexing_cache ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "domain_cache_read_all" ON domain_indexing_cache
   FOR SELECT USING (true);
+CREATE POLICY "domain_cache_block_insert" ON domain_indexing_cache
+  FOR INSERT WITH CHECK (false);
+CREATE POLICY "domain_cache_block_update" ON domain_indexing_cache
+  FOR UPDATE USING (false) WITH CHECK (false);
+CREATE POLICY "domain_cache_block_delete" ON domain_indexing_cache
+  FOR DELETE USING (false);
 
 -- analysis_sessions 擴充欄位
 ALTER TABLE analysis_sessions

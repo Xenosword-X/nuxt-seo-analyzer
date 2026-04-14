@@ -1,5 +1,7 @@
 // server/utils/sse.ts
+// 使用 h3 官方 createEventStream，跨 runtime 相容（含 Cloudflare Workers）
 import type { H3Event } from 'h3'
+import { createEventStream } from 'h3'
 
 export function formatSseEvent(event: string, data: unknown): string {
   const payload = JSON.stringify(data)
@@ -7,59 +9,26 @@ export function formatSseEvent(event: string, data: unknown): string {
 }
 
 export interface SseWriter {
-  send: (event: string, data: unknown) => void
-  close: () => void
+  send: (event: string, data: unknown) => void | Promise<void>
+  close: () => Promise<void>
+  /** 傳給 handler return 的 stream 物件 */
+  response: ReturnType<typeof createEventStream>
 }
 
 /**
- * 直接寫入 Node response，避免 Nitro dev 對 ReadableStream 的 buffering。
- * 呼叫端需 await 整個 SSE 流程完成，不要直接 return stream。
+ * 建立 SSE 連線。回傳 { writer, response }；handler 需 return `response`。
+ * 呼叫端邏輯：
+ *   const { writer, response } = openSse(event)
+ *   // 背景寫事件（不 await）
+ *   doWork(writer).finally(() => writer.close())
+ *   return response
  */
-export function startSse(event: H3Event): SseWriter {
-  const res = event.node.res
-  res.setHeader('Content-Type', 'text/event-stream; charset=utf-8')
-  res.setHeader('Cache-Control', 'no-cache, no-transform')
-  res.setHeader('Connection', 'keep-alive')
-  // 告知反向代理不要 buffer（Nginx / Cloudflare 都吃這個 header）
-  res.setHeader('X-Accel-Buffering', 'no')
-  if (typeof res.flushHeaders === 'function') res.flushHeaders()
-
-  // 先送一行 comment 立即觸發 client 收到 200 回應
-  res.write(': stream-open\n\n')
-
-  return {
-    send: (name, data) => {
-      if (res.writableEnded) return
-      res.write(formatSseEvent(name, data))
-    },
-    close: () => {
-      if (!res.writableEnded) res.end()
-    },
-  }
-}
-
-/**
- * Legacy helper — 保留給需要 ReadableStream 的場景。
- */
-export function createSseStream(): { stream: ReadableStream<Uint8Array>; writer: SseWriter } {
-  const encoder = new TextEncoder()
-  let controllerRef: ReadableStreamDefaultController<Uint8Array> | null = null
-  const stream = new ReadableStream<Uint8Array>({
-    start(controller) {
-      controllerRef = controller
-    },
-  })
+export function openSse(event: H3Event): { writer: SseWriter; response: ReturnType<typeof createEventStream> } {
+  const stream = createEventStream(event)
   const writer: SseWriter = {
-    send: (event, data) => {
-      controllerRef?.enqueue(encoder.encode(formatSseEvent(event, data)))
-    },
-    close: () => {
-      try {
-        controllerRef?.close()
-      } catch {
-        /* noop */
-      }
-    },
+    send: (name, data) => stream.push({ event: name, data: JSON.stringify(data) }),
+    close: () => stream.close(),
+    response: stream,
   }
-  return { stream, writer }
+  return { writer, response: stream }
 }

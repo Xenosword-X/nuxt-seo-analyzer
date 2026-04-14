@@ -18,6 +18,7 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     // server-only：不暴露給前端
+    supabaseUrl: '',
     openaiApiKey: '',
     serpApiKeys: '',
     apifyKeys: '',

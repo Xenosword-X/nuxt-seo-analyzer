@@ -4,8 +4,10 @@ import { createClient } from '@supabase/supabase-js'
 
 export function useServerSupabase() {
   const config = useRuntimeConfig()
+  const url = (config.supabaseUrl as string) || process.env.SUPABASE_URL || ''
+  if (!url) throw new Error('SUPABASE_URL is not configured')
   return createClient(
-    process.env.SUPABASE_URL!,
+    url,
     config.supabaseServiceRoleKey as string,
     { auth: { persistSession: false } }
   )

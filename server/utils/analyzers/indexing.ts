@@ -14,19 +14,20 @@ export async function analyzeIndexing(url: string): Promise<IndexingResult> {
   const apifyKeys = parseKeys(config.apifyKeys)
   const scraperKeys = parseKeys(config.scraperApiKeys)
 
+  // 引擎順序 SerpApi → ScraperAPI → Apify（與整站版 engine.ts 一致）
   if (serpKeys.length > 0) {
     const r = await checkViaSerpApi(domain, serpKeys)
     if (r) return toResult(r, 'serpapi')
   }
 
-  if (apifyKeys.length > 0) {
-    const r = await checkViaApify(domain, apifyKeys)
-    if (r) return toResult(r, 'apify')
-  }
-
   if (scraperKeys.length > 0) {
     const r = await checkViaScraperApi(domain, scraperKeys)
     if (r) return toResult(r, 'scraperapi')
+  }
+
+  if (apifyKeys.length > 0) {
+    const r = await checkViaApify(domain, apifyKeys)
+    if (r) return toResult(r, 'apify')
   }
 
   return {
@@ -91,7 +92,7 @@ async function checkViaScraperApi(domain: string, keys: string[]): Promise<Check
       const query = encodeURIComponent(`site:${domain}`)
       const targetUrl = encodeURIComponent(`https://www.google.com/search?q=${query}&num=1&hl=zh-TW`)
       const res = await fetch(
-        `http://api.scraperapi.com/?api_key=${key}&url=${targetUrl}`,
+        `https://api.scraperapi.com/?api_key=${key}&url=${targetUrl}`,
         { signal: AbortSignal.timeout(30_000) }
       )
       if (!res.ok) continue

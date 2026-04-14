@@ -38,11 +38,6 @@ export async function checkViaApify(
       const first = Array.isArray(pageItems) && pageItems[0] ? pageItems[0] : null
       const pages = Number(first?.resultsTotal ?? first?.totalResults ?? 0)
 
-      // 異常保護：Apify pages_count > 10 視為異常（對齊 Python 版）
-      if (pages > 0 && pages <= 10) {
-        throw new Error('apify anomaly: pages_count <= 10 suspected malformed')
-      }
-
       if (pages === 0) return { pagesIndexed: 0, imagesIndexed: 0 }
 
       // 圖片收錄
@@ -56,6 +51,7 @@ export async function checkViaApify(
       return { pagesIndexed: pages, imagesIndexed: images }
     } catch (e: any) {
       if (isQuotaError(e.message)) continue
+      // 非配額錯誤（網路、認證）也切下一把 key 保守處理
       continue
     }
   }

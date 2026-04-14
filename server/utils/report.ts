@@ -128,6 +128,7 @@ export async function generateSiteReport(input: SiteReportInput): Promise<string
 
   const response = await client.chat.completions.create({
     model: 'gpt-4o-mini',
+    max_tokens: 2000,
     messages: [
       { role: 'system', content: SYSTEM_PROMPT },
       { role: 'user', content: JSON.stringify(userPayload) },

@@ -32,7 +32,8 @@ describe('analyzeIndexing', () => {
     expect(result.issues.some(i => i.includes('索引'))).toBe(true)
   })
 
-  it('SerpApi 有 error 欄位 → 降級到 Apify', async () => {
+  it('SerpApi 有 error 欄位 → 降級到 ScraperAPI', async () => {
+    // 引擎順序：SerpApi → ScraperAPI → Apify
     vi.stubGlobal('fetch', vi.fn()
       .mockResolvedValueOnce({
         ok: true,
@@ -40,12 +41,13 @@ describe('analyzeIndexing', () => {
       })
       .mockResolvedValueOnce({
         ok: true,
-        json: () => Promise.resolve([{ resultsTotal: 500 }]),
+        text: () => Promise.resolve('<div id="result-stats">約有 1,500 項結果</div>'),
       })
     )
     const result = await analyzeIndexing('https://example.com/page')
-    expect(result.engineUsed).toBe('apify')
+    expect(result.engineUsed).toBe('scraperapi')
     expect(result.isIndexed).toBe(true)
+    expect(result.resultCount).toBe(1500)
   })
 
   it('所有引擎都失敗：engineUsed=failed', async () => {
