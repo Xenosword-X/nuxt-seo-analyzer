@@ -64,7 +64,76 @@ export async function generateAIReport(
   }
 }
 
-// STUB: real implementation in Task E1
-export async function generateSiteReport(input: any): Promise<string> {
-  throw new Error('generateSiteReport not yet implemented (Task E1)')
+interface SiteReportInput {
+  domain: string
+  siteIndexing: {
+    pagesIndexed: number | null
+    imagesIndexed: number | null
+    engine: string | null
+  }
+  pages: Array<Omit<PageAnalysisResult, 'aiReport'>>
+}
+
+export async function generateSiteReport(input: SiteReportInput): Promise<string> {
+  const config = useRuntimeConfig()
+  const client = new OpenAI({ apiKey: config.openaiApiKey as string })
+
+  const pageSummaries = input.pages.map((p) => ({
+    url: p.url,
+    metaScore: p.metaTags.score,
+    metaIssues: p.metaTags.issues,
+    speedScore: p.coreWebVitals.speedScore,
+    cwvIssues: p.coreWebVitals.issues,
+    robotsIssues: p.robotsSitemap.issues,
+    schemaTypes: p.schemaData.types,
+    headingIssues: p.headings.issues,
+    h1Count: p.headings.h1.length,
+    missingAltCount: p.images.missingAlt,
+    isIndexed: p.indexing.isIndexed,
+  }))
+
+  const userPayload = {
+    domain: input.domain,
+    siteIndexing: input.siteIndexing,
+    pageCount: input.pages.length,
+    pages: pageSummaries,
+  }
+
+  const SYSTEM_PROMPT = `你是繁體中文 SEO 顧問。根據使用者提供的整站分析資料，產出一份結構化的繁體中文 SEO 健診報告，格式為 Markdown。
+報告結構：
+## 整體摘要
+（3–5 句，點出該站最關鍵的 1–2 個問題）
+
+## 優先改善項目（依影響度排序）
+1. **[問題名稱]** — 說明 + 具體改善方向
+2. ...
+
+## 各類別檢討
+### Meta 標籤
+### Core Web Vitals
+### 結構化資料 / Schema
+### 標題結構（H1–H3）
+### 圖片 SEO
+### 索引與 robots
+### 整站收錄量觀察
+
+## 總結建議
+（2–3 句，給一個清晰的下一步行動）
+
+規則：
+- 語氣專業、簡潔，不堆砌形容詞
+- 針對具體網址或具體數字給建議
+- 問題不多時不要硬湊，可略過該類別
+- 不輸出 JSON、不要開場白、直接開始 Markdown`
+
+  const response = await client.chat.completions.create({
+    model: 'gpt-4o-mini',
+    messages: [
+      { role: 'system', content: SYSTEM_PROMPT },
+      { role: 'user', content: JSON.stringify(userPayload) },
+    ],
+    temperature: 0.3,
+  })
+
+  return response.choices[0]?.message?.content?.trim() || '（AI 報告為空）'
 }
