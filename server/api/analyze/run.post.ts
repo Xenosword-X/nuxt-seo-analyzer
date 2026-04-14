@@ -1,6 +1,6 @@
 // server/api/analyze/run.post.ts
 import pLimit from 'p-limit'
-import { createSseStream } from '../../utils/sse'
+import { startSse, type SseWriter } from '../../utils/sse'
 import { normalizeDomain } from '../../utils/domain'
 import { checkDomainIndexing } from '../../utils/indexing/engine'
 import { readCache, writeCache } from '../../utils/indexing/cache'
@@ -33,24 +33,20 @@ export default defineEventHandler(async (event) => {
   if (authError || !user) throw createError({ statusCode: 401, message: '無效的 Token' })
 
   const config = useRuntimeConfig()
-  const { stream, writer } = createSseStream()
+  const writer = startSse(event)
 
-  setHeader(event, 'Content-Type', 'text/event-stream')
-  setHeader(event, 'Cache-Control', 'no-cache')
-  setHeader(event, 'Connection', 'keep-alive')
-
-  // 在背景執行不 await，立刻回傳 stream
-  runSseAnalysis(writer, supabase, config, body).catch((e) => {
+  try {
+    await runSseAnalysis(writer, supabase, config, body)
+  } catch (e: any) {
     console.error('SSE run failed:', e)
     writer.send('fatal_error', { message: String(e?.message || e) })
+  } finally {
     writer.close()
-  })
-
-  return sendStream(event, stream)
+  }
 })
 
 async function runSseAnalysis(
-  writer: ReturnType<typeof createSseStream>['writer'],
+  writer: SseWriter,
   supabase: ReturnType<typeof useServerSupabase>,
   config: ReturnType<typeof useRuntimeConfig>,
   body: RunBody,
@@ -199,5 +195,4 @@ async function runSseAnalysis(
 
   await supabase.from('analysis_sessions').update({ status: 'done' }).eq('id', sessionId)
   writer.send('session_done', { sessionId, status: 'done' })
-  writer.close()
 }
