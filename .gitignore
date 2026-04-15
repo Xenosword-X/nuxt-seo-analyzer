@@ -22,3 +22,10 @@ logs
 .env
 .env.*
 !.env.example
+
+# 敏感憑證（絕不推上 GitHub）
+client_secret_*.json
+credentials/
+oauth_tokens/
+*.pem
+*.key
