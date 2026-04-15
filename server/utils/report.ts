@@ -1,11 +1,13 @@
 // server/utils/report.ts
+import type { H3Event } from 'h3'
 import OpenAI from 'openai'
 import type { PageAnalysisResult } from './analyzers/types'
 
 export async function generateAIReport(
-  analysis: Omit<PageAnalysisResult, 'aiReport'>
+  analysis: Omit<PageAnalysisResult, 'aiReport'>,
+  event?: H3Event,
 ): Promise<string> {
-  const config = useRuntimeConfig()
+  const config = useRuntimeConfig(event)
   const client = new OpenAI({ apiKey: config.openaiApiKey as string })
 
   const summary = {
@@ -74,8 +76,8 @@ interface SiteReportInput {
   pages: Array<Omit<PageAnalysisResult, 'aiReport'>>
 }
 
-export async function generateSiteReport(input: SiteReportInput): Promise<string> {
-  const config = useRuntimeConfig()
+export async function generateSiteReport(input: SiteReportInput, event?: H3Event): Promise<string> {
+  const config = useRuntimeConfig(event)
   const client = new OpenAI({ apiKey: config.openaiApiKey as string })
 
   const pageSummaries = input.pages.map((p) => ({

@@ -1,4 +1,5 @@
 // server/api/analyze/run.post.ts
+import type { H3Event } from 'h3'
 import pLimit from 'p-limit'
 import { openSse, type SseWriter } from '../../utils/sse'
 import { normalizeDomain } from '../../utils/domain'
@@ -39,7 +40,7 @@ export default defineEventHandler(async (event) => {
   // 背景執行；完成或失敗都在內部呼叫 writer.close()
   ;(async () => {
     try {
-      await runSseAnalysis(writer, supabase, config, body)
+      await runSseAnalysis(writer, supabase, config, body, event)
     } catch (e: any) {
       console.error('SSE run failed:', e)
       // [C3] 把 session 狀態寫回 error，避免永遠卡在 running
@@ -62,6 +63,7 @@ async function runSseAnalysis(
   supabase: ReturnType<typeof useServerSupabase>,
   config: ReturnType<typeof useRuntimeConfig>,
   body: RunBody,
+  event: H3Event,
 ) {
   const { sessionId, domain, urls } = body
 
@@ -130,12 +132,12 @@ async function runSseAnalysis(
     try {
       const [meta, cwv, robots, schema, headings, images, indexing] = await Promise.allSettled([
         analyzeMeta(url),
-        analyzeCWV(url),
+        analyzeCWV(url, event),
         analyzeRobots(url),
         analyzeSchema(url),
         analyzeHeadings(url),
         analyzeImages(url),
-        analyzeIndexing(url),
+        analyzeIndexing(url, event),
       ])
 
       const metaTags: MetaTagsResult = meta.status === 'fulfilled' ? meta.value
@@ -198,7 +200,7 @@ async function runSseAnalysis(
         engine: sessionRow?.site_indexing_engine ?? null,
       },
       pages: pageResults,
-    })
+    }, event)
     await supabase.from('analysis_sessions').update({ ai_report: report }).eq('id', sessionId)
     writer.send('ai_report_ready', { report })
   } catch (e: any) {

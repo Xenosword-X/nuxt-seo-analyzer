@@ -1,7 +1,8 @@
+import type { H3Event } from 'h3'
 import type { CWVResult } from './types'
 
-export async function analyzeCWV(url: string): Promise<CWVResult> {
-  const config = useRuntimeConfig()
+export async function analyzeCWV(url: string, event?: H3Event): Promise<CWVResult> {
+  const config = useRuntimeConfig(event)
   const apiKey = config.pagespeedApiKey as string
 
   try {

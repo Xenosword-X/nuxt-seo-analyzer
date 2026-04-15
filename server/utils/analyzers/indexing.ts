@@ -1,3 +1,4 @@
+import type { H3Event } from 'h3'
 import type { IndexingResult } from './types'
 import { parseKeys } from '../indexing/parse-keys'
 
@@ -6,8 +7,8 @@ interface CheckResult {
   resultCount: number
 }
 
-export async function analyzeIndexing(url: string): Promise<IndexingResult> {
-  const config = useRuntimeConfig()
+export async function analyzeIndexing(url: string, event?: H3Event): Promise<IndexingResult> {
+  const config = useRuntimeConfig(event)
   const domain = new URL(url).hostname
 
   const serpKeys = parseKeys(config.serpApiKeys)
