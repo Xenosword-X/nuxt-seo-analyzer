@@ -12,6 +12,7 @@
 [![License](https://img.shields.io/github/license/Xenosword-X/nuxt-seo-analyzer?style=flat-square)](./LICENSE)
 [![Last Commit](https://img.shields.io/github/last-commit/Xenosword-X/nuxt-seo-analyzer?style=flat-square)](https://github.com/Xenosword-X/nuxt-seo-analyzer/commits/main)
 
+🌐 **線上 Demo：** [nuxt-gamestore.pages.dev](https://nuxt-gamestore.pages.dev)
 </div>
 
 ---
