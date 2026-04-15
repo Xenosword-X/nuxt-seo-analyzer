@@ -36,37 +36,32 @@
 
                 ## ✨ 功能概覽
 
-                <table>
-                  <tr>
-                    <td width="50%">
-             
-                      ### 🔍 分析功能
-             
+                <table><tr><td width="50%">
+                
+                ### 🔍 分析功能
+
                 - **頁面探索**：自動掃描 `sitemap.xml` + 首頁連結，合併去重
                 - - **7 大 SEO 指標**：Meta 標籤、Core Web Vitals、Google 索引、標題結構、圖片 Alt、Schema、Robots/Sitemap
                   - - **SSE 即時串流**：每頁分析完成立即推送，進度條即時更新
                     - - **整站收錄量**：Google 網頁數 / 圖片數查詢，24 小時快取
-                     
-                      - </td>
-                      <td width="50%">
-               
+                      -
+                      - </td><td width="50%">
+
                       ### 🧠 AI 與匯出
-               
+
                       - **整站中文健診報告**：所有頁面完成後，GPT-4o-mini 彙整產出一份 Markdown 格式的繁體中文 SEO 報告
                       - - **CSV 匯出**：UTF-8 with BOM，每頁一列含 12 欄位，Excel 開啟無亂碼
                         - - **Markdown 匯出**：整站報告 + AI 摘要 + 各頁問題清單，適合貼入 Notion / 客戶提案
                           - - **歷史紀錄**：所有分析儲存於 Supabase，可回顧完整報告
-                           
-                            - </td>
-                            </tr>
-                            </tr>table>
-               
+                            -
+                            - </td></td>tr></td>table>
+
                             ---
-               
+
                             ## 🏗️ 技術架構
-               
+
                             ### 前端
-               
+
                             | 技術 | 說明 |
                             |------|------|
                             | [![Nuxt](https://img.shields.io/badge/Nuxt-3-00DC82?style=flat-square&logo=nuxt.js)](https://nuxt.com) | 全端框架，使用 Nuxt 4 的 `app/` 目錄慣例 |
@@ -74,9 +69,9 @@
                             | [![Nuxt UI](https://img.shields.io/badge/nuxt/ui-latest-00DC82?style=flat-square)](https://ui.nuxt.com) | UI 元件庫（UButton、UCard、UInput 等） |
                             | [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-06B6D4?style=flat-square&logo=tailwindcss)](https://tailwindcss.com) | Utility-first CSS 框架 |
                             | marked | Markdown 渲染（AI 報告內容） |
-               
+
                             ### 後端
-               
+
                             | 技術 | 說明 |
                             |------|------|
                             | Nitro | Nuxt Nitro Server routes，部署為 Cloudflare Workers |
@@ -85,9 +80,9 @@
                             | p-limit | 平行批次控制（每次 5 頁） |
                             | openai | GPT-4o-mini API 呼叫（中文報告產生） |
                             | SSE (`text/event-stream`) | 串流推送分析進度 |
-               
+
                             ### 外部 API
-               
+
                             | API | 用途 |
                             |-----|------|
                             | Google PageSpeed Insights | Core Web Vitals 分數（免費） |
@@ -95,25 +90,25 @@
                             | Apify | 索引狀態檢查（備援引擎一） |
                             | ScraperAPI | 索引狀態檢查（備援引擎二） |
                             | OpenAI GPT-4o-mini | 中文 SEO 健診報告產生 |
-               
+
                             ### 資料庫與認證
-               
+
                             | 技術 | 說明 |
                             |------|------|
                             | [![Supabase](https://img.shields.io/badge/Supabase-latest-3ECF8E?style=flat-square&logo=supabase)](https://supabase.com) | PostgreSQL 資料庫 + Google OAuth2 認證 |
                             | Row Level Security（RLS） | 確保使用者只能存取自己的資料 |
-               
+
                             ### 部署與測試
-               
+
                             | 技術 | 說明 |
                             |------|------|
                             | [![Cloudflare Pages](https://img.shields.io/badge/Cloudflare_Pages-F38020?style=flat-square&logo=cloudflare&logoColor=white)](https://pages.cloudflare.com) | 前端靜態資源 + Nitro server routes（Workers） |
                             | [![Vitest](https://img.shields.io/badge/Vitest-latest-6E9F18?style=flat-square&logo=vitest)](https://vitest.dev) | 單元測試框架（69 tests，全數通過） |
-               
+
                             ---
-               
+
                             ## 🗄️ 資料庫結構
-               
+
                             ```sql
                             -- 每日用量追蹤
                             daily_usage (
@@ -148,11 +143,11 @@
                               engine_used text, checked_at timestamptz, expires_at timestamptz
                             )
                             ```
-               
+
                             ---
-               
+
                             ## 📁 專案結構
-               
+
                             ```
                             nuxt-seo-analyzer/
                             ├── app/
@@ -202,13 +197,13 @@
                             ├── nuxt.config.ts
                             └── vitest.config.ts
                             ```
-               
+
                             ---
-               
+
                             ## ⚙️ 環境設定
-               
+
                             複製 `.env.example` 為 `.env` 並填入以下變數：
-               
+
                             ```env
                             # Supabase（由 @nuxtjs/supabase 直接讀取，不需 NUXT_ 前綴）
                             SUPABASE_URL=https://your-project.supabase.co
@@ -234,18 +229,18 @@
                             NUXT_DOMAIN_CACHE_TTL_HOURS=24     # 整站收錄快取時效（小時）
                             NUXT_SITE_INDEXING_ENABLED=true    # 是否啟用整站收錄查詢
                             ```
-               
+
                             ---
-               
+
                             ## 🛠️ 本機開發
-               
+
                             ### 環境需求
-               
+
                             - Node.js 22+
                             - - npm
-                             
+                              -
                               - ### 安裝與啟動
-                             
+                              -
                               - ```bash
                                 # 安裝依賴
                                 npm install
@@ -254,9 +249,9 @@
                                 npm run dev
                                 # 開啟 http://localhost:3000
                                 ```
-               
+
                                 ### 執行測試
-               
+
                                 ```bash
                                 # 執行單元測試
                                 npx vitest run
@@ -264,27 +259,27 @@
                                 # 執行測試（監看模式）
                                 npx vitest
                                 ```
-               
+
                                 ### Supabase 初始化
-               
+
                                 1. 在 [Supabase Dashboard](https://app.supabase.com) 建立新專案
                                 2. 2. 至 SQL Editor 執行 `supabase/schema.sql`
                                    3. 3. 至 Authentication → Providers → Google，啟用並填入 Google OAuth2 Client ID / Secret
-                                     
-                                      4. ---
-                                     
-                                      5. ## 🚀 部署至 Cloudflare Pages
-                                     
-                                      6. ```bash
+                                      4.
+                                      5. ---
+                                      6.
+                                      7. ## 🚀 部署至 Cloudflare Pages
+                                      8.
+                                      9. ```bash
                                          npm run build
                                          ```
-               
+
                                          透過 Cloudflare Pages 連接 GitHub repo 自動部署（Nitro preset 已設定為 `cloudflare-pages`）。在 Cloudflare Pages 的環境變數設定中填入所有 `NUXT_` 前綴的環境變數。
-               
+
                                          ---
-               
+
                                          ## 📋 使用流程
-               
+
                                          ```
                                          1. 以 Google 帳號登入
                                          2. 在 Dashboard 輸入網域（例：example.com）→ 開始分析
@@ -299,11 +294,11 @@
                                             └── 右上角：匯出 CSV / Markdown
                                          7. 歷史紀錄頁面可回顧所有過去的分析（含收錄量摘要）
                                          ```
-               
+
                                          ---
-               
+
                                          ## 🧪 測試覆蓋範圍
-               
+
                                          ```
                                          tests/server/utils/
                                          ├── usage.test.ts          # 用量追蹤邏輯
@@ -326,41 +321,40 @@
 
                                          總計：69 tests（17 個檔案），全數通過
                                          ```
-               
+
                                          ---
-               
+
                                          ## 💡 技術決策說明
-               
+
                                          **為什麼選 Nuxt 3 + Cloudflare Pages？**
                                          Nuxt Nitro 的 server routes 可以直接部署為 Cloudflare Workers，實現前後端同一個 repo、同一個部署流程，對 side project 而言維護成本最低。
-               
+
                                          **為什麼選 Supabase 而非 Cloudflare D1？**
                                          Supabase 提供完整的 Auth（Google OAuth2）、Row Level Security、PostgreSQL，且開發者對其較熟悉，適合需要認證系統的應用。
-               
+
                                          **為什麼用三引擎降級而非單一 API？**
                                          索引檢查涉及爬取 Google 搜尋結果，任何單一 API 都有配額限制與封鎖風險。三引擎降級加上多組金鑰輪轉，大幅提升可用性。
-               
+
                                          **為什麼用 GPT-4o-mini 而非更強的模型？**
                                          SEO 報告生成是結構化任務，輸入資料明確（7 大指標 JSON），GPT-4o-mini 的輸出品質已足夠專業，且成本極低，適合 side project 規模。
-               
+
                                          **為什麼從「每頁一份」改為「整站一份」AI 報告？**
                                          每頁一份 AI 報告對全站 30 頁的成本是 30 次 OpenAI 呼叫；整站彙整一次只呼叫一次，token 成本下降 80%，且報告更具整體觀點，更符合 SEO 顧問實務的呈現方式。
-               
+
                                          **為什麼 SSE 而非輪詢？**
                                          30 頁分析需要 15–25 秒，輪詢每 2 秒一次會浪費頻寬與 DB 查詢；SSE 在分析事件發生當下即時推送，前端體驗更流暢。輪詢仍保留為斷線/重新整理的 fallback。
-               
+
                                          ---
-               
+
                                          ## 📄 License
-               
+
                                          MIT
-               
+
                                          ---
-               
+
                                          <div align="center">
-               
-                                         Made with ❤️ by [Xenosword-X](https://github.com/Xenosword-X)
-               
+                                     
+                                           Made with ❤️ by [Xenosword-X](https://github.com/Xenosword-X)
+                                     
                                          </div>
-                  </tr>
-                </table>
+                                         </tr></table>
