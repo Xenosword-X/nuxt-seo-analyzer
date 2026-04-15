@@ -1,7 +1,7 @@
 // server/api/usage/check.get.ts
 export default defineEventHandler(async (event) => {
-  const supabase = useServerSupabase()
-  const config = useRuntimeConfig()
+  const supabase = useServerSupabase(event)
+  const config = useRuntimeConfig(event)
   const limit = Number(config.appDailyDomainLimit)
 
   const token = getHeader(event, 'authorization')?.replace('Bearer ', '')
@@ -10,5 +10,5 @@ export default defineEventHandler(async (event) => {
   const { data: { user }, error } = await supabase.auth.getUser(token)
   if (error || !user) throw createError({ statusCode: 401, message: '無效的 Token' })
 
-  return await getUsage(user.id, limit)
+  return await getUsage(user.id, limit, event)
 })

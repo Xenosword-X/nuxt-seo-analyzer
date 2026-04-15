@@ -14,7 +14,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, message: '請提供網域' })
   }
 
-  const config = useRuntimeConfig()
+  const config = useRuntimeConfig(event)
   if (config.siteIndexingEnabled !== 'true') {
     return { pagesIndexed: null, imagesIndexed: null, engineUsed: null, cached: false, error: 'disabled' }
   }
@@ -22,7 +22,7 @@ export default defineEventHandler(async (event) => {
   const token = getHeader(event, 'authorization')?.replace('Bearer ', '')
   if (!token) throw createError({ statusCode: 401, message: '未登入' })
 
-  const supabase = useServerSupabase()
+  const supabase = useServerSupabase(event)
   const { data: { user }, error: authError } = await supabase.auth.getUser(token)
   if (authError || !user) throw createError({ statusCode: 401, message: '無效的 Token' })
 

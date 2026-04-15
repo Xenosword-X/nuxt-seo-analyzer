@@ -4,8 +4,8 @@ interface DiscoverBody {
 }
 
 export default defineEventHandler(async (event) => {
-  const supabase = useServerSupabase()
-  const config = useRuntimeConfig()
+  const supabase = useServerSupabase(event)
+  const config = useRuntimeConfig(event)
 
   const body = await readBody<DiscoverBody>(event)
   if (!body?.domain) {
@@ -51,7 +51,7 @@ export default defineEventHandler(async (event) => {
   }
 
   // 扣額度
-  await incrementUsage(user.id, Number(config.appDailyDomainLimit))
+  await incrementUsage(user.id, Number(config.appDailyDomainLimit), event)
 
   // 建立 session
   const { data: session, error: sessionError } = await supabase

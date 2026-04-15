@@ -1,4 +1,5 @@
 // server/utils/usage.ts
+import type { H3Event } from 'h3'
 import { useServerSupabase } from './supabase'
 
 export interface UsageInfo {
@@ -7,8 +8,8 @@ export interface UsageInfo {
   remaining: number
 }
 
-export async function getUsage(userId: string, dailyLimit: number): Promise<UsageInfo> {
-  const supabase = useServerSupabase()
+export async function getUsage(userId: string, dailyLimit: number, event?: H3Event): Promise<UsageInfo> {
+  const supabase = useServerSupabase(event)
   const today = new Date().toISOString().split('T')[0]
 
   const { data } = await supabase
@@ -22,8 +23,8 @@ export async function getUsage(userId: string, dailyLimit: number): Promise<Usag
   return { used, limit: dailyLimit, remaining: Math.max(0, dailyLimit - used) }
 }
 
-export async function incrementUsage(userId: string, dailyLimit: number): Promise<void> {
-  const supabase = useServerSupabase()
+export async function incrementUsage(userId: string, dailyLimit: number, event?: H3Event): Promise<void> {
+  const supabase = useServerSupabase(event)
   const today = new Date().toISOString().split('T')[0]
 
   const { data: existing } = await supabase

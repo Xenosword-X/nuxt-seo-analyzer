@@ -28,11 +28,11 @@ export default defineEventHandler(async (event) => {
   const token = getHeader(event, 'authorization')?.replace('Bearer ', '')
   if (!token) throw createError({ statusCode: 401, message: '未登入' })
 
-  const supabase = useServerSupabase()
+  const supabase = useServerSupabase(event)
   const { data: { user }, error: authError } = await supabase.auth.getUser(token)
   if (authError || !user) throw createError({ statusCode: 401, message: '無效的 Token' })
 
-  const config = useRuntimeConfig()
+  const config = useRuntimeConfig(event)
   const { writer, response } = openSse(event)
 
   // 背景執行；完成或失敗都在內部呼叫 writer.close()
