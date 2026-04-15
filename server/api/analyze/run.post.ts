@@ -17,7 +17,8 @@ interface RunBody {
   urls: string[]
 }
 
-const PAGE_BATCH_CONCURRENCY = 5
+// 併發數：CF Workers 免費版 30s wall-clock 限制下，3 最穩；同時避開 PageSpeed 每秒 4 次 rate limit
+const PAGE_BATCH_CONCURRENCY = 3
 
 export default defineEventHandler(async (event) => {
   const body = await readBody<RunBody>(event)
