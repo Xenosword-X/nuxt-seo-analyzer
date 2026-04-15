@@ -15,7 +15,8 @@ export default defineEventHandler(async (event) => {
   }
 
   const config = useRuntimeConfig(event)
-  if (config.siteIndexingEnabled !== 'true') {
+  // Nuxt destr 會把 env 的 'true' 轉成 boolean true，兼容兩種型別
+  if (String(config.siteIndexingEnabled) !== 'true') {
     return { pagesIndexed: null, imagesIndexed: null, engineUsed: null, cached: false, error: 'disabled' }
   }
 

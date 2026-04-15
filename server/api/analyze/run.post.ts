@@ -70,7 +70,7 @@ async function runSseAnalysis(
 
   // 平行：整站收錄查詢
   const siteIndexingTask = (async () => {
-    if (config.siteIndexingEnabled !== 'true') return
+    if (String(config.siteIndexingEnabled) !== 'true') return
     const normalized = normalizeDomain(domain)
     const cached = await readCache(supabase, normalized)
 
