@@ -1,6 +1,6 @@
-<div align="center">
+[![CI](https://github.com/Xenosword-X/nuxt-seo-analyzer/actions/workflows/ci.yml/badge.svg)](https://github.com/Xenosword-X/nuxt-seo-analyzer/actions/workflows/ci.yml)
 
-![CI](https://github.com/Xenosword-X/nuxt-seo-analyzer/actions/workflows/ci.yml/badge.svg)
+# nuxt-seo-analyzer
 
 > 繁體中文 SEO 深度分析工具 — 以繁體中文為核心、由 AI 自動產生健診報告的 SEO 分析平台。
 
@@ -12,42 +12,35 @@
 
 ### 核心特色
 
-- 🌐 全繁體中文 UI 與分析報告
-- 🤖 輸入網域自動**全站分析**（最多 30 頁），無需手動選頁
-- ⚡ **SSE 即時串流**：每完成一頁立即推送，不必等全部跑完
-- 📊 **整站 Google 收錄量**：整站網頁 / 圖片收錄統計（24 小時快取）
-- 🧠 GPT-4o-mini **整站一份**個人化中文 SEO 健診報告
-- 🔄 三引擎降級索引檢查（SerpApi → ScraperAPI → Apify），多組金鑰輪轉
-- 🔎 7 大 SEO 指標一次完整掃描（每頁）
-- 📥 結果匯出 CSV / Markdown
-- 🕓 歷史紀錄追蹤，含每筆收錄量摘要
+| 特色 | 說明 |
+|------|------|
+| 🌐 全繁體中文介面 | UI 與分析報告全程繁體中文 |
+| 🤖 全站自動分析 | 輸入網域即可自動分析（最多 30 頁），無需手動選頁 |
+| ⚡ SSE 即時串流 | 每完成一頁立即推送，不必等全部跑完 |
+| 📊 整站 Google 收錄量 | 整站網頁／圖片收錄統計（24 小時快取） |
+| 🧠 AI 健診報告 | GPT-4o-mini 彙整產出一份整站個人化中文 SEO 報告 |
+| 🔄 三引擎降級索引檢查 | SerpApi → ScraperAPI → Apify，多組金鑰輪轉 |
+| 🔎 7 大 SEO 指標掃描 | 每頁完整掃描 7 項指標 |
+| 📥 多格式匯出 | 支援 CSV / Markdown 匯出 |
+| 🕓 歷史紀錄追蹤 | 所有分析含每筆收錄量摘要可回顧 |
 
 ---
 
 ## ✨ 功能概覽
 
-<table>
-<tr>
-<td width="50%">
-<h3>🔍 分析功能</h3>
-<ul>
-<li>頁面探索：自動掃描 sitemap.xml + 首頁連結，合併去重</li>
-<li>7 大 SEO 指標：Meta 標籤、Core Web Vitals、Google 索引、標題結構、圖片 Alt、Schema、Robots/Sitemap</li>
-<li>SSE 即時串流：每頁分析完成立即推送，進度條即時更新</li>
-<li>整站收錄量：Google 網頁數 / 圖片數查詢，24 小時快取</li>
-</ul>
-</td>
-<td width="50%">
-<h3>🧠 AI 與匯出</h3>
-<ul>
-<li>整站中文健診報告：所有頁面完成後，GPT-4o-mini 彙整產出一份繁體中文 SEO 報告</li>
-<li>CSV 匯出：UTF-8 with BOM，每頁一列含 12 欄位，Excel 開啟無亂碼</li>
-<li>Markdown 匯出：整站報告 + AI 摘要 + 各頁問題清單，適合貼入 Notion / 客戶提案</li>
-<li>歷史紀錄：所有分析儲存於 Supabase，可回顧完整報告</li>
-</ul>
-</td>
-</tr>
-</table>
+### 🔍 分析功能
+
+- **頁面探索**：自動掃描 `sitemap.xml` + 首頁連結，合併去重
+- **7 大 SEO 指標**：Meta 標籤、Core Web Vitals、Google 索引、標題結構、圖片 Alt、Schema、Robots/Sitemap
+- **SSE 即時串流**：每頁分析完成立即推送，進度條即時更新
+- **整站收錄量**：Google 網頁數 / 圖片數查詢，24 小時快取
+
+### 🧠 AI 與匯出
+
+- **整站中文健診報告**：所有頁面完成後，GPT-4o-mini 彙整產出一份繁體中文 SEO 報告
+- **CSV 匯出**：UTF-8 with BOM，每頁一列含 12 欄位，Excel 開啟無亂碼
+- **Markdown 匯出**：整站報告 + AI 摘要 + 各頁問題清單，適合貼入 Notion / 客戶提案
+- **歷史紀錄**：所有分析儲存於 Supabase，可回顧完整報告
 
 ---
 
@@ -113,11 +106,11 @@ daily_usage (
 analysis_sessions (
   id uuid PK, user_id uuid FK, domain text,
   status text, page_count int, created_at timestamptz,
-  site_pages_indexed int,   -- 整站網頁收錄數
-  site_images_indexed int,  -- 整站圖片收錄數
+  site_pages_indexed int,    -- 整站網頁收錄數
+  site_images_indexed int,   -- 整站圖片收錄數
   site_indexing_engine text, -- 哪一個引擎成功回傳
   site_indexing_cached boolean, -- 是否命中快取
-  ai_report text            -- 整站 AI 報告（Markdown）
+  ai_report text             -- 整站 AI 報告（Markdown）
 )
 
 -- 每頁分析結果
@@ -197,7 +190,7 @@ nuxt-seo-analyzer/
 
 複製 `.env.example` 為 `.env` 並填入以下變數：
 
-```env
+```dotenv
 # Supabase（由 @nuxtjs/supabase 直接讀取，不需 NUXT_ 前綴）
 SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_KEY=your-anon-key
@@ -219,8 +212,8 @@ NUXT_APP_DAILY_DOMAIN_LIMIT=5
 NUXT_APP_MAX_PAGES_PER_RUN=30
 
 # 全站分析設定
-NUXT_DOMAIN_CACHE_TTL_HOURS=24     # 整站收錄快取時效（小時）
-NUXT_SITE_INDEXING_ENABLED=true    # 是否啟用整站收錄查詢
+NUXT_DOMAIN_CACHE_TTL_HOURS=24    # 整站收錄快取時效（小時）
+NUXT_SITE_INDEXING_ENABLED=true   # 是否啟用整站收錄查詢
 ```
 
 ---
@@ -332,7 +325,7 @@ SEO 報告生成是結構化任務，輸入資料明確（7 大指標 JSON），
 
 ## 📄 License
 
-MIT
+[MIT](./LICENSE)
 
 ---
 
