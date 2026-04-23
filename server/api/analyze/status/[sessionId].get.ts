@@ -31,6 +31,7 @@ export default defineEventHandler(async (event) => {
     domain: session.domain,
     page_count: session.page_count,
     created_at: session.created_at,
+    share_token: session.share_token ?? null,
     site_pages_indexed: session.site_pages_indexed ?? null,
     site_images_indexed: session.site_images_indexed ?? null,
     site_indexing_engine: session.site_indexing_engine ?? null,
