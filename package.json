@@ -8,7 +8,8 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@nuxt/ui": "^4.6.1",
@@ -25,6 +26,7 @@
   },
   "devDependencies": {
     "@nuxt/test-utils": "^4.0.2",
+    "@playwright/test": "^1.59.1",
     "happy-dom": "^20.8.9",
     "vitest": "^4.1.4"
   }
