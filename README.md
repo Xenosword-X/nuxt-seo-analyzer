@@ -1,25 +1,8 @@
 <div align="center">
 
-<<<<<<< HEAD
 ![CI](https://github.com/Xenosword-X/nuxt-seo-analyzer/actions/workflows/ci.yml/badge.svg)
 
 > 繁體中文 SEO 深度分析工具 — 以繁體中文為核心、由 AI 自動產生健診報告的 SEO 分析平台。
-=======
-# 🔍 Nuxt SEO Analyzer
-
-繁體中文 SEO 深度分析工具 — 以繁體中文為核心、由 AI 自動產生健診報告的 SEO 分析平台。
-
-[![Nuxt](https://img.shields.io/badge/Nuxt-3-00DC82?style=for-the-badge&logo=nuxt.js&logoColor=white)](https://nuxt.com/)
-[![Vue](https://img.shields.io/badge/Vue-3-4FC08D?style=for-the-badge&logo=vue.js&logoColor=white)](https://vuejs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
-[![Cloudflare](https://img.shields.io/badge/Deployed_on-Cloudflare-F38020?style=for-the-badge&logo=cloudflare&logoColor=white)](https://pages.cloudflare.com/)
-[![License](https://img.shields.io/github/license/Xenosword-X/nuxt-seo-analyzer?style=flat-square)](./LICENSE)
-[![Last Commit](https://img.shields.io/github/last-commit/Xenosword-X/nuxt-seo-analyzer?style=flat-square)](https://github.com/Xenosword-X/nuxt-seo-analyzer/commits/main)
-
-🌐 **線上 Demo：** [nuxt-seo-analyzer.pages.dev](https://nuxt-seo-analyzer.pages.dev)
-</div>
->>>>>>> 0e7ee02a8f97e40a07b110a539506d1c23436088
 
 ---
 
