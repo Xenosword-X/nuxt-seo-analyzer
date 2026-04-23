@@ -19,6 +19,13 @@
         </div>
         <div class="flex items-center gap-2">
           <button
+            class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium text-white bg-white/10 border border-white/25 transition-all hover:bg-white/25 hover:border-white/40 active:scale-95"
+            @click="copyShareLink"
+          >
+            <UIcon :name="copyingShare ? 'i-heroicons-check' : 'i-heroicons-link'" class="w-4 h-4" />
+            <span>{{ copyingShare ? '已複製！' : '分享連結' }}</span>
+          </button>
+          <button
             class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium text-white bg-white/10 border border-white/25 transition-all hover:bg-white/25 hover:border-white/40 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
             :disabled="exporting === 'csv'"
             @click="triggerExport('csv')"
@@ -409,6 +416,17 @@ async function refreshSiteIndexing() {
 }
 
 const exporting = ref<'csv' | 'markdown' | null>(null)
+
+const copyingShare = ref(false)
+
+async function copyShareLink() {
+  const token = sessionData.value?.share_token
+  if (!token || copyingShare.value) return
+  const url = `${window.location.origin}/share/${token}`
+  await navigator.clipboard.writeText(url)
+  copyingShare.value = true
+  setTimeout(() => { copyingShare.value = false }, 1500)
+}
 
 async function triggerExport(format: 'csv' | 'markdown') {
   if (!sessionData.value?.id || exporting.value) return
