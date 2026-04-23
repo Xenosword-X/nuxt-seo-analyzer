@@ -99,3 +99,9 @@ ALTER TABLE analysis_sessions
   ADD COLUMN IF NOT EXISTS site_indexing_engine TEXT,
   ADD COLUMN IF NOT EXISTS site_indexing_cached BOOLEAN DEFAULT FALSE,
   ADD COLUMN IF NOT EXISTS ai_report            TEXT;
+
+-- ========================================
+-- 2026-04-23 Migration：公開分享連結
+-- ========================================
+ALTER TABLE analysis_sessions
+  ADD COLUMN IF NOT EXISTS share_token UUID UNIQUE DEFAULT gen_random_uuid();
