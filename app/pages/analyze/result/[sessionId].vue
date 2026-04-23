@@ -321,6 +321,7 @@
 
 <script setup lang="ts">
 import { marked } from 'marked'
+import DOMPurify from 'isomorphic-dompurify'
 
 const route = useRoute()
 const sessionId = route.params.sessionId as string
@@ -337,7 +338,7 @@ const renderedReport = computed(() => {
   // AI 報告改為整站一份，存於 session.ai_report；舊資料可能仍在 page.ai_report
   const report = sessionData.value?.ai_report || selected.value?.ai_report
   if (!report) return '<p class="text-gray-400">（無報告）</p>'
-  return marked(report) as string
+  return DOMPurify.sanitize(marked(report) as string)
 })
 
 async function load() {

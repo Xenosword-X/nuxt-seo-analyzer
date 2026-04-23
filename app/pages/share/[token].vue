@@ -281,6 +281,7 @@
 
 <script setup lang="ts">
 import { marked } from 'marked'
+import DOMPurify from 'isomorphic-dompurify'
 
 definePageMeta({ auth: false })
 
@@ -298,7 +299,7 @@ const selected = computed(() => analyses.value[selectedIndex.value] ?? null)
 const renderedReport = computed(() => {
   const report = sessionData.value?.ai_report || selected.value?.ai_report
   if (!report) return '<p class="text-gray-400">（無報告）</p>'
-  return marked(report) as string
+  return DOMPurify.sanitize(marked(report) as string)
 })
 
 async function load() {
