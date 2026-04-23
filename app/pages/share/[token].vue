@@ -281,7 +281,6 @@
 
 <script setup lang="ts">
 import { marked } from 'marked'
-import DOMPurify from 'isomorphic-dompurify'
 
 definePageMeta({ auth: false })
 
@@ -293,20 +292,20 @@ const notFound = ref(false)
 const sessionData = ref<any>(null)
 const analyses = ref<any[]>([])
 const selectedIndex = ref(0)
+const renderedReport = ref('<p class="text-gray-400">（無報告）</p>')
 
 const selected = computed(() => analyses.value[selectedIndex.value] ?? null)
-
-const renderedReport = computed(() => {
-  const report = sessionData.value?.ai_report || selected.value?.ai_report
-  if (!report) return '<p class="text-gray-400">（無報告）</p>'
-  return DOMPurify.sanitize(marked(report) as string)
-})
 
 async function load() {
   try {
     const result = await $fetch<any>(`/api/share/${shareToken}`)
     sessionData.value = result
     analyses.value = result.analyses ?? []
+    const report = result.ai_report
+    if (report) {
+      const { default: DOMPurify } = await import('isomorphic-dompurify')
+      renderedReport.value = DOMPurify.sanitize(marked(report) as string)
+    }
   } catch (err: any) {
     if (err?.statusCode === 404) {
       notFound.value = true

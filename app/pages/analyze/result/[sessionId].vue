@@ -321,7 +321,6 @@
 
 <script setup lang="ts">
 import { marked } from 'marked'
-import DOMPurify from 'isomorphic-dompurify'
 
 const route = useRoute()
 const sessionId = route.params.sessionId as string
@@ -331,15 +330,9 @@ const pending = ref(true)
 const sessionData = ref<any>(null)
 const analyses = ref<any[]>([])
 const selectedIndex = ref(0)
+const renderedReport = ref('<p class="text-gray-400">（無報告）</p>')
 
 const selected = computed(() => analyses.value[selectedIndex.value] ?? null)
-
-const renderedReport = computed(() => {
-  // AI 報告改為整站一份，存於 session.ai_report；舊資料可能仍在 page.ai_report
-  const report = sessionData.value?.ai_report || selected.value?.ai_report
-  if (!report) return '<p class="text-gray-400">（無報告）</p>'
-  return DOMPurify.sanitize(marked(report) as string)
-})
 
 async function load() {
   const { data } = await supabase.auth.getSession()
@@ -352,6 +345,11 @@ async function load() {
     })
     sessionData.value = result
     analyses.value = result.analyses ?? []
+    const report = result.ai_report || result.analyses?.[0]?.ai_report
+    if (report) {
+      const { default: DOMPurify } = await import('isomorphic-dompurify')
+      renderedReport.value = DOMPurify.sanitize(marked(report) as string)
+    }
   } catch {
     navigateTo('/dashboard')
   } finally {
