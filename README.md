@@ -1,5 +1,7 @@
 # nuxt-seo-analyzer
 
+![CI](https://github.com/Xenosword-X/nuxt-seo-analyzer/actions/workflows/ci.yml/badge.svg)
+
 > 繁體中文 SEO 深度分析工具 — 以繁體中文為核心、由 AI 自動產生健診報告的 SEO 分析平台。
 
 ---
