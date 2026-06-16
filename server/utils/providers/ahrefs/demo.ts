@@ -1,5 +1,5 @@
-import { normalizeDomain } from '../../domain'
 import { addHours } from '../shared/snapshot'
+import { buildDemoUrl, normalizeProviderHost } from '../shared/url'
 import type { SeoProviderResult } from '../shared/types'
 import type { AhrefsSnapshot } from './types'
 
@@ -8,7 +8,7 @@ export function getDemoAhrefsSnapshot(
   now = new Date(),
   ttlHours = 24,
 ): SeoProviderResult<AhrefsSnapshot> {
-  const normalized = normalizeDomain(domain)
+  const host = normalizeProviderHost(domain)
 
   return {
     provider: 'ahrefs',
@@ -24,9 +24,9 @@ export function getDemoAhrefsSnapshot(
       organicKeywords: 2140,
       organicTrafficEstimate: 18400,
       topPages: [
-        { url: `https://${normalized}/`, traffic: 5200, keywords: 420 },
-        { url: `https://${normalized}/blog/seo-checklist`, traffic: 2600, keywords: 190 },
-        { url: `https://${normalized}/services/seo`, traffic: 1800, keywords: 155 },
+        { url: buildDemoUrl(host, '/'), traffic: 5200, keywords: 420 },
+        { url: buildDemoUrl(host, '/blog/seo-checklist'), traffic: 2600, keywords: 190 },
+        { url: buildDemoUrl(host, '/services/seo'), traffic: 1800, keywords: 155 },
       ],
       competitors: [
         { domain: 'competitor-a.com', overlapScore: 72 },

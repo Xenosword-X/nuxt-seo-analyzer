@@ -1,5 +1,5 @@
-import { normalizeDomain } from '../../domain'
 import { addHours } from '../shared/snapshot'
+import { buildDemoUrl, normalizeProviderHost } from '../shared/url'
 import type { SeoProviderResult } from '../shared/types'
 import type { CrawlerSnapshot } from './types'
 
@@ -8,7 +8,7 @@ export function getDemoCrawlerSnapshot(
   now = new Date(),
   ttlHours = 24,
 ): SeoProviderResult<CrawlerSnapshot> {
-  const normalized = normalizeDomain(domain)
+  const host = normalizeProviderHost(domain)
 
   return {
     provider: 'crawler',
@@ -29,12 +29,12 @@ export function getDemoCrawlerSnapshot(
         {
           type: 'broken_links',
           count: 7,
-          sampleUrls: [`https://${normalized}/old-campaign`, `https://${normalized}/blog/deleted-post`],
+          sampleUrls: [buildDemoUrl(host, '/old-campaign'), buildDemoUrl(host, '/blog/deleted-post')],
         },
         {
           type: 'missing_descriptions',
           count: 18,
-          sampleUrls: [`https://${normalized}/blog/seo-checklist`, `https://${normalized}/case-studies/client-a`],
+          sampleUrls: [buildDemoUrl(host, '/blog/seo-checklist'), buildDemoUrl(host, '/case-studies/client-a')],
         },
       ],
     },

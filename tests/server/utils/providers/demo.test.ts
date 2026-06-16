@@ -85,4 +85,22 @@ describe('demo providers', () => {
     expect(result.data.crawledUrls).toBeGreaterThan(0)
     expect(result.data.topIssues.length).toBeGreaterThan(0)
   })
+
+  it('builds provider demo URLs from host even when input has path query and hash', () => {
+    const ahrefs = getDemoAhrefsSnapshot('https://example.com/path?x=1#frag', new Date('2026-06-16T00:00:00.000Z'), 24)
+    const gsc = getDemoGscSnapshot('https://example.com/path?x=1#frag', new Date('2026-06-16T00:00:00.000Z'), 24)
+    const crawler = getDemoCrawlerSnapshot('https://example.com/path?x=1#frag', new Date('2026-06-16T00:00:00.000Z'), 24)
+
+    expect(ahrefs.data.topPages[0].url).toBe('https://example.com/')
+    expect(ahrefs.data.topPages[1].url).toBe('https://example.com/blog/seo-checklist')
+    expect(gsc.data.opportunities[0].page).toBe('https://example.com/blog/seo-checklist')
+    expect(crawler.data.topIssues[0].sampleUrls[0]).toBe('https://example.com/old-campaign')
+  })
+
+  it('builds provider demo URLs from host when input has only a hash fragment', () => {
+    const ahrefs = getDemoAhrefsSnapshot('https://example.com#frag', new Date('2026-06-16T00:00:00.000Z'), 24)
+
+    expect(ahrefs.data.topPages[0].url).toBe('https://example.com/')
+    expect(ahrefs.data.topPages[1].url).toBe('https://example.com/blog/seo-checklist')
+  })
 })

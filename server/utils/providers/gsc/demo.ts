@@ -1,5 +1,5 @@
-import { normalizeDomain } from '../../domain'
 import { addHours } from '../shared/snapshot'
+import { buildDemoUrl, normalizeProviderHost } from '../shared/url'
 import type { SeoProviderResult } from '../shared/types'
 import type { GscSnapshot } from './types'
 
@@ -8,8 +8,8 @@ export function getDemoGscSnapshot(
   now = new Date(),
   ttlHours = 24,
 ): SeoProviderResult<GscSnapshot> {
-  const normalized = normalizeDomain(domain)
-  const brand = normalized.split('.')[0] || 'brand'
+  const host = normalizeProviderHost(domain)
+  const brand = host.split('.')[0] || 'brand'
 
   return {
     provider: 'gsc',
@@ -32,12 +32,12 @@ export function getDemoGscSnapshot(
         {
           query: 'seo audit checklist',
           reason: 'High impressions with low CTR; refresh title and meta description.',
-          page: `https://${normalized}/blog/seo-checklist`,
+          page: buildDemoUrl(host, '/blog/seo-checklist'),
         },
         {
           query: 'technical seo tool',
           reason: 'Ranking near page one; expand content depth and add FAQ schema.',
-          page: `https://${normalized}/services/seo`,
+          page: buildDemoUrl(host, '/services/seo'),
         },
       ],
     },
