@@ -29,5 +29,10 @@ export default defineNuxtConfig({
     appMaxPagesPerRun: '30',
     domainCacheTtlHours: '24',
     siteIndexingEnabled: 'true',
+    ahrefsApiKey: '',
+    ahrefsLiveEnabled: 'false',
+    gscLiveEnabled: 'false',
+    crawlerImportEnabled: 'false',
+    providerSnapshotTtlHours: '24',
   },
 })

@@ -105,3 +105,75 @@ ALTER TABLE analysis_sessions
 -- ========================================
 ALTER TABLE analysis_sessions
   ADD COLUMN IF NOT EXISTS share_token UUID UNIQUE DEFAULT gen_random_uuid();
+
+-- ========================================
+-- 2026-06-16 Migration: Project dashboard + provider snapshots
+-- ========================================
+
+CREATE TABLE IF NOT EXISTS projects (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  domain TEXT NOT NULL,
+  target_market TEXT,
+  competitors JSONB NOT NULL DEFAULT '[]'::jsonb,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS provider_snapshots (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+  provider TEXT NOT NULL CHECK (provider IN ('ahrefs', 'gsc', 'crawler')),
+  mode TEXT NOT NULL CHECK (mode IN ('demo', 'live', 'imported')),
+  status TEXT NOT NULL CHECK (status IN ('ready', 'failed', 'partial')),
+  fetched_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  expires_at TIMESTAMPTZ,
+  data JSONB NOT NULL DEFAULT '{}'::jsonb,
+  error TEXT
+);
+
+CREATE TABLE IF NOT EXISTS project_tasks (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+  source TEXT NOT NULL CHECK (source IN ('audit', 'ahrefs', 'gsc', 'crawler', 'ai')),
+  title TEXT NOT NULL,
+  description TEXT,
+  impact TEXT NOT NULL CHECK (impact IN ('high', 'medium', 'low')),
+  effort TEXT NOT NULL CHECK (effort IN ('high', 'medium', 'low')),
+  status TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open', 'done', 'ignored')),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+ALTER TABLE analysis_sessions
+  ADD COLUMN IF NOT EXISTS project_id UUID REFERENCES projects(id) ON DELETE SET NULL;
+
+CREATE INDEX IF NOT EXISTS idx_projects_user_updated
+  ON projects(user_id, updated_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_provider_snapshots_project_provider
+  ON provider_snapshots(project_id, provider, fetched_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_project_tasks_project_status
+  ON project_tasks(project_id, status, created_at DESC);
+
+ALTER TABLE projects ENABLE ROW LEVEL SECURITY;
+ALTER TABLE provider_snapshots ENABLE ROW LEVEL SECURITY;
+ALTER TABLE project_tasks ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "users_own_projects" ON projects
+  FOR ALL USING (auth.uid() = user_id);
+
+CREATE POLICY "users_own_provider_snapshots" ON provider_snapshots
+  FOR ALL USING (
+    project_id IN (
+      SELECT id FROM projects WHERE user_id = auth.uid()
+    )
+  );
+
+CREATE POLICY "users_own_project_tasks" ON project_tasks
+  FOR ALL USING (
+    project_id IN (
+      SELECT id FROM projects WHERE user_id = auth.uid()
+    )
+  );
