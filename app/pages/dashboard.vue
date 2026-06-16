@@ -430,7 +430,7 @@ async function createProject() {
       return
     }
 
-    await $fetch<CreateProjectResponse>('/api/projects', {
+    const result = await $fetch<CreateProjectResponse>('/api/projects', {
       method: 'POST',
       body: {
         name: projectForm.name.trim(),
@@ -441,11 +441,7 @@ async function createProject() {
       headers: { authorization: `Bearer ${token}` },
     })
 
-    projectForm.name = ''
-    projectForm.domain = ''
-    projectForm.targetMarket = ''
-    competitorsText.value = ''
-    await loadProjects()
+    await navigateTo(`/projects/${result.project.id}`)
   } catch (error: any) {
     createErrorMsg.value = error?.data?.message || error?.message || '建立專案失敗'
   } finally {
