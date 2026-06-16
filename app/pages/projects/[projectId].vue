@@ -23,13 +23,26 @@
             </p>
           </div>
 
-          <span
+          <div class="flex flex-wrap items-center gap-3">
+            <UButton
+              v-if="project"
+              color="primary"
+              icon="i-heroicons-bolt"
+              :loading="auditLoading"
+              :disabled="auditLoading"
+              @click="startProjectAudit"
+            >
+              執行專案 Audit
+            </UButton>
+
+            <span
             class="inline-flex w-fit items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold"
             :class="scoreBadgeClass(project?.healthScore ?? 0)"
           >
             <UIcon name="i-heroicons-heart" class="h-4 w-4" />
             健康分數 {{ project?.healthScore ?? '--' }}
-          </span>
+            </span>
+          </div>
         </div>
       </div>
     </header>
@@ -52,6 +65,10 @@
       </div>
 
       <div v-else-if="project" class="space-y-8">
+        <p v-if="auditError" class="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+          {{ auditError }}
+        </p>
+
         <section class="grid gap-4 md:grid-cols-4">
           <div class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
             <p class="text-sm font-medium text-slate-500">健康分數</p>
@@ -247,6 +264,14 @@ interface TaskUpdateResponse {
   task: ProjectTask
 }
 
+interface DiscoverResponse {
+  sessionId: string
+  domain: string
+  pageCount: number
+  totalFound: number
+  urls: string[]
+}
+
 interface ProviderMetric {
   key: string
   label: string
@@ -271,6 +296,8 @@ const recentSessions = ref<RecentSession[]>([])
 const loading = ref(true)
 const loadError = ref('')
 const updatingTaskId = ref<string | null>(null)
+const auditLoading = ref(false)
+const auditError = ref('')
 const taskUpdateError = reactive<Record<string, string>>({})
 
 const projectId = computed(() => {
@@ -360,6 +387,43 @@ async function loadProject() {
     recentSessions.value = []
   } finally {
     loading.value = false
+  }
+}
+
+async function startProjectAudit() {
+  if (!project.value || auditLoading.value) return
+
+  auditLoading.value = true
+  auditError.value = ''
+
+  try {
+    const token = await getToken()
+    if (!token) {
+      await navigateTo('/')
+      return
+    }
+
+    const result = await $fetch<DiscoverResponse>('/api/analyze/discover', {
+      method: 'POST',
+      body: {
+        domain: project.value.domain,
+        projectId: project.value.id,
+      },
+      headers: { authorization: `Bearer ${token}` },
+    })
+
+    sessionStorage.setItem(`analysis:${result.sessionId}`, JSON.stringify({
+      urls: result.urls,
+      domain: result.domain,
+      pageCount: result.pageCount,
+      totalFound: result.totalFound,
+    }))
+
+    await navigateTo(`/analyze/running?sessionId=${result.sessionId}`)
+  } catch (error: any) {
+    auditError.value = error?.data?.message || error?.message || 'Project audit failed'
+  } finally {
+    auditLoading.value = false
   }
 }
 

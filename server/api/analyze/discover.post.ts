@@ -1,6 +1,18 @@
 // server/api/analyze/discover.post.ts
+import { normalizeDomain } from '../../utils/domain'
+
 interface DiscoverBody {
   domain: string
+  projectId?: string
+}
+
+interface ProjectRow {
+  id: string
+  domain: string
+}
+
+function isUuid(value: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value)
 }
 
 export default defineEventHandler(async (event) => {
@@ -28,6 +40,36 @@ export default defineEventHandler(async (event) => {
   if (authError || !user) throw createError({ statusCode: 401, message: '無效的 Token' })
 
   // 先掃頁面
+  const projectId = typeof body?.projectId === 'string' && body.projectId.trim()
+    ? body.projectId.trim()
+    : null
+
+  if (projectId && !isUuid(projectId)) {
+    throw createError({ statusCode: 400, message: 'Project ID is invalid' })
+  }
+
+  let linkedProject: ProjectRow | null = null
+  if (projectId) {
+    const { data: project, error: projectError } = await supabase
+      .from('projects')
+      .select('id, domain')
+      .eq('id', projectId)
+      .eq('user_id', user.id)
+      .maybeSingle()
+
+    if (projectError) {
+      throw createError({ statusCode: 500, message: 'Project lookup failed' })
+    }
+    if (!project) {
+      throw createError({ statusCode: 404, message: 'Project not found' })
+    }
+
+    linkedProject = project as ProjectRow
+    if (normalizeDomain(domain) !== linkedProject.domain) {
+      throw createError({ statusCode: 400, message: 'Project domain does not match audit domain' })
+    }
+  }
+
   const [sitemapUrls, homepageLinks] = await Promise.all([
     fetchSitemapUrls(domain),
     fetchHomepageLinks(domain),
@@ -61,6 +103,7 @@ export default defineEventHandler(async (event) => {
       domain,
       status: 'running',
       page_count: limited.length,
+      project_id: linkedProject?.id ?? null,
     })
     .select()
     .single()
