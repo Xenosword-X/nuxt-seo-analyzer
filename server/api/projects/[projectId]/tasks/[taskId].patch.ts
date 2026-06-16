@@ -4,8 +4,16 @@ interface UpdateTaskBody {
 
 type ProjectTaskStatus = 'open' | 'done' | 'ignored'
 
+interface SupabaseError {
+  code?: string
+}
+
 function isProjectTaskStatus(value: unknown): value is ProjectTaskStatus {
   return value === 'open' || value === 'done' || value === 'ignored'
+}
+
+function isNoRows(error: SupabaseError | null | undefined): boolean {
+  return error?.code === 'PGRST116'
 }
 
 export default defineEventHandler(async (event) => {
@@ -27,14 +35,18 @@ export default defineEventHandler(async (event) => {
   const { data: { user }, error: authError } = await supabase.auth.getUser(token)
   if (authError || !user) throw createError({ statusCode: 401, message: '無效的 Token' })
 
-  const { data: project } = await supabase
+  const { data: project, error: projectError } = await supabase
     .from('projects')
     .select('id')
     .eq('id', projectId)
     .eq('user_id', user.id)
     .single()
 
-  if (!project) {
+  if (projectError && !isNoRows(projectError)) {
+    throw createError({ statusCode: 500, message: '讀取專案失敗' })
+  }
+
+  if (isNoRows(projectError) || !project) {
     throw createError({ statusCode: 404, message: '找不到專案' })
   }
 
@@ -46,12 +58,12 @@ export default defineEventHandler(async (event) => {
     .select('id, project_id, source, title, description, impact, effort, status, created_at')
     .single()
 
-  if (!task) {
-    throw createError({ statusCode: 404, message: '找不到任務' })
+  if (taskError && !isNoRows(taskError)) {
+    throw createError({ statusCode: 500, message: '更新任務失敗' })
   }
 
-  if (taskError) {
-    throw createError({ statusCode: 500, message: '更新任務失敗' })
+  if (isNoRows(taskError) || !task) {
+    throw createError({ statusCode: 404, message: '找不到任務' })
   }
 
   return { task }

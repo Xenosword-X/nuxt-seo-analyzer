@@ -22,7 +22,15 @@ interface ProviderSnapshotRow {
   error: string | null
 }
 
+interface SupabaseError {
+  code?: string
+}
+
 const providerOrder: ProviderName[] = ['ahrefs', 'gsc', 'crawler']
+
+function isNoRows(error: SupabaseError | null | undefined): boolean {
+  return error?.code === 'PGRST116'
+}
 
 function isProviderName(value: string): value is ProviderName {
   return providerOrder.includes(value as ProviderName)
@@ -132,12 +140,12 @@ export default defineEventHandler(async (event) => {
     .eq('user_id', user.id)
     .single()
 
-  if (!project) {
-    throw createError({ statusCode: 404, message: '找不到專案' })
+  if (projectError && !isNoRows(projectError)) {
+    throw createError({ statusCode: 500, message: '讀取專案失敗' })
   }
 
-  if (projectError) {
-    throw createError({ statusCode: 500, message: '載入專案失敗' })
+  if (isNoRows(projectError) || !project) {
+    throw createError({ statusCode: 404, message: '找不到專案' })
   }
 
   const [

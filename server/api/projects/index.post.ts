@@ -101,13 +101,40 @@ export default defineEventHandler(async (event) => {
   const snapshots = buildDemoProviderSnapshots(projectRow.id, domain, new Date(), ttlHours)
   const tasks = buildInitialProjectTasks(projectRow.id)
 
-  const [{ error: snapshotsError }, { error: tasksError }] = await Promise.all([
-    supabase.from('provider_snapshots').insert(snapshots),
-    supabase.from('project_tasks').insert(tasks),
-  ])
+  try {
+    const { error: snapshotsError } = await supabase.from('provider_snapshots').insert(snapshots)
+    const { error: tasksError } = snapshotsError
+      ? { error: null }
+      : await supabase.from('project_tasks').insert(tasks)
 
-  if (snapshotsError || tasksError) {
-    throw createError({ statusCode: 500, message: '建立專案示範資料失敗' })
+    if (snapshotsError || tasksError) {
+      throw snapshotsError ?? tasksError
+    }
+  } catch (initError) {
+    try {
+      const { error: cleanupError } = await supabase
+        .from('projects')
+        .delete()
+        .eq('id', projectRow.id)
+
+      if (cleanupError) {
+        console.error('Failed to cleanup partially initialized project', {
+          projectId: projectRow.id,
+          error: cleanupError,
+        })
+      }
+    } catch (cleanupError) {
+      console.error('Failed to cleanup partially initialized project', {
+        projectId: projectRow.id,
+        error: cleanupError,
+      })
+    }
+
+    console.error('Failed to initialize project demo data', {
+      projectId: projectRow.id,
+      error: initError,
+    })
+    throw createError({ statusCode: 500, message: '建立專案初始化資料失敗' })
   }
 
   return { project: toProjectResponse(projectRow) }
