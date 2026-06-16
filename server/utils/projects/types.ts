@@ -1,4 +1,4 @@
-import type { ProviderMode, ProviderName, ProviderStatus } from '../providers/shared/types'
+import type { JsonValue, ProviderMode, ProviderName, ProviderStatus } from '../providers/shared/types'
 
 export interface ProjectTaskInsert {
   project_id: string
@@ -16,7 +16,7 @@ export interface ProviderSnapshotSummary {
   status: ProviderStatus
   fetched_at: string
   expires_at: string | null
-  data: any
+  data: JsonValue
   error: string | null
 }
 
