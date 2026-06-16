@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import { isSnapshotStale, toProviderSnapshotRow } from '../../../../server/utils/providers/shared/snapshot'
 
+interface NamedSnapshot {
+  domainRating: number
+  topPages: Array<{ url: string, traffic: number }>
+}
+
 describe('provider snapshot helpers', () => {
   it('marks expired snapshots as stale', () => {
     expect(isSnapshotStale('2026-06-16T00:00:00.000Z', new Date('2026-06-16T01:00:00.000Z'))).toBe(true)
@@ -35,5 +40,18 @@ describe('provider snapshot helpers', () => {
       data: { domainRating: 42 },
       error: null,
     })
+  })
+
+  it('accepts named JSON-compatible provider payload interfaces', () => {
+    const row = toProviderSnapshotRow<NamedSnapshot>('project-1', {
+      provider: 'ahrefs',
+      mode: 'demo',
+      status: 'ready',
+      cached: false,
+      fetchedAt: '2026-06-16T00:00:00.000Z',
+      data: { domainRating: 42, topPages: [{ url: 'https://example.com', traffic: 100 }] },
+    })
+
+    expect(row.data.domainRating).toBe(42)
   })
 })
