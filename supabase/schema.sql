@@ -148,6 +148,32 @@ CREATE TABLE IF NOT EXISTS project_tasks (
 ALTER TABLE analysis_sessions
   ADD COLUMN IF NOT EXISTS project_id UUID REFERENCES projects(id) ON DELETE SET NULL;
 
+CREATE OR REPLACE FUNCTION validate_analysis_session_project_owner()
+RETURNS trigger AS $$
+BEGIN
+  IF NEW.project_id IS NULL THEN
+    RETURN NEW;
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1
+    FROM projects
+    WHERE id = NEW.project_id
+      AND user_id = NEW.user_id
+  ) THEN
+    RAISE EXCEPTION 'analysis session project must belong to the same user';
+  END IF;
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_validate_analysis_session_project_owner ON analysis_sessions;
+CREATE TRIGGER trg_validate_analysis_session_project_owner
+  BEFORE INSERT OR UPDATE OF project_id, user_id ON analysis_sessions
+  FOR EACH ROW
+  EXECUTE FUNCTION validate_analysis_session_project_owner();
+
 CREATE INDEX IF NOT EXISTS idx_projects_user_updated
   ON projects(user_id, updated_at DESC);
 
@@ -161,16 +187,31 @@ ALTER TABLE projects ENABLE ROW LEVEL SECURITY;
 ALTER TABLE provider_snapshots ENABLE ROW LEVEL SECURITY;
 ALTER TABLE project_tasks ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "users_own_projects" ON projects;
 CREATE POLICY "users_own_projects" ON projects
   FOR ALL USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "users_own_provider_snapshots" ON provider_snapshots;
 CREATE POLICY "users_own_provider_snapshots" ON provider_snapshots
-  FOR ALL USING (
+  FOR SELECT TO authenticated USING (
     project_id IN (
       SELECT id FROM projects WHERE user_id = auth.uid()
     )
   );
 
+DROP POLICY IF EXISTS "provider_snapshots_block_insert" ON provider_snapshots;
+CREATE POLICY "provider_snapshots_block_insert" ON provider_snapshots
+  FOR INSERT TO authenticated WITH CHECK (false);
+
+DROP POLICY IF EXISTS "provider_snapshots_block_update" ON provider_snapshots;
+CREATE POLICY "provider_snapshots_block_update" ON provider_snapshots
+  FOR UPDATE TO authenticated USING (false) WITH CHECK (false);
+
+DROP POLICY IF EXISTS "provider_snapshots_block_delete" ON provider_snapshots;
+CREATE POLICY "provider_snapshots_block_delete" ON provider_snapshots
+  FOR DELETE TO authenticated USING (false);
+
+DROP POLICY IF EXISTS "users_own_project_tasks" ON project_tasks;
 CREATE POLICY "users_own_project_tasks" ON project_tasks
   FOR ALL USING (
     project_id IN (
