@@ -10,6 +10,10 @@ describe('provider snapshot helpers', () => {
     expect(isSnapshotStale('2026-06-16T02:00:00.000Z', new Date('2026-06-16T01:00:00.000Z'))).toBe(false)
   })
 
+  it('treats invalid expiry timestamps as stale', () => {
+    expect(isSnapshotStale('not-a-date', new Date('2026-06-16T01:00:00.000Z'))).toBe(true)
+  })
+
   it('converts provider results into insertable rows', () => {
     const row = toProviderSnapshotRow('project-1', {
       provider: 'ahrefs',

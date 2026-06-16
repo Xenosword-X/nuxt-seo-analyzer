@@ -1,11 +1,13 @@
-import type { ProviderSnapshotRow, SeoProviderResult } from './types'
+import type { JsonValue, ProviderSnapshotRow, SeoProviderResult } from './types'
 
 export function isSnapshotStale(expiresAt: string | null | undefined, now = new Date()): boolean {
   if (!expiresAt) return false
-  return new Date(expiresAt).getTime() <= now.getTime()
+  const expiresTime = new Date(expiresAt).getTime()
+  if (!Number.isFinite(expiresTime)) return true
+  return expiresTime <= now.getTime()
 }
 
-export function toProviderSnapshotRow<T>(
+export function toProviderSnapshotRow<T extends JsonValue>(
   projectId: string,
   result: SeoProviderResult<T>,
 ): ProviderSnapshotRow<T> {

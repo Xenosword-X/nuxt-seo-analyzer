@@ -2,7 +2,11 @@ export type ProviderName = 'ahrefs' | 'gsc' | 'crawler'
 export type ProviderMode = 'demo' | 'live' | 'imported'
 export type ProviderStatus = 'ready' | 'failed' | 'partial'
 
-export interface SeoProviderResult<T> {
+export type JsonPrimitive = string | number | boolean | null
+export type JsonValue = JsonPrimitive | JsonObject | JsonValue[]
+export interface JsonObject { [key: string]: JsonValue }
+
+export interface SeoProviderResult<T extends JsonValue = JsonObject> {
   provider: ProviderName
   mode: ProviderMode
   status: ProviderStatus
@@ -13,7 +17,7 @@ export interface SeoProviderResult<T> {
   error?: string
 }
 
-export interface ProviderSnapshotRow<T = unknown> {
+export interface ProviderSnapshotRow<T extends JsonValue = JsonValue> {
   project_id: string
   provider: ProviderName
   mode: ProviderMode
