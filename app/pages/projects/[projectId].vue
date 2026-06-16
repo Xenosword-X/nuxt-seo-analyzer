@@ -146,7 +146,7 @@
             >
               <div class="min-w-0">
                 <div class="flex flex-wrap items-center gap-2">
-                  <h3 class="text-base font-semibold text-slate-950">{{ task.title }}</h3>
+                  <h3 class="min-w-0 max-w-full break-words text-base font-semibold text-slate-950">{{ task.title }}</h3>
                   <span class="rounded-full px-2 py-0.5 text-xs font-medium" :class="impactClass(task.impact)">
                     影響 {{ impactLabel(task.impact) }}
                   </span>
@@ -154,7 +154,7 @@
                     成本 {{ effortLabel(task.effort) }}
                   </span>
                 </div>
-                <p class="mt-2 text-sm leading-6 text-slate-600">{{ task.description }}</p>
+                <p class="mt-2 min-w-0 break-words text-sm leading-6 text-slate-600">{{ task.description }}</p>
               </div>
 
               <div class="flex flex-col gap-2">
@@ -165,7 +165,7 @@
                   :id="`task-status-${task.id}`"
                   class="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-800 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400"
                   :value="task.status"
-                  :disabled="updatingTaskId === task.id"
+                  :disabled="Boolean(updatingTaskId)"
                   @change="handleTaskStatusChange(task, $event)"
                 >
                   <option value="open">待處理</option>
