@@ -85,6 +85,24 @@
               載入專案中...
             </div>
 
+            <div v-else-if="projectListError" class="px-5 py-14 text-center">
+              <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-lg bg-rose-50">
+                <UIcon name="i-heroicons-exclamation-circle" class="h-6 w-6 text-rose-600" />
+              </div>
+              <h3 class="mt-4 text-base font-semibold text-slate-950">專案載入失敗</h3>
+              <p class="mt-2 text-sm text-slate-500">{{ projectListError }}</p>
+              <UButton
+                class="mt-5"
+                color="neutral"
+                variant="soft"
+                icon="i-heroicons-arrow-path"
+                :loading="projectsPending"
+                @click="loadProjects"
+              >
+                重試
+              </UButton>
+            </div>
+
             <div v-else-if="projects.length === 0" class="px-5 py-14 text-center">
               <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-lg bg-sky-50">
                 <UIcon name="i-heroicons-folder-plus" class="h-6 w-6 text-sky-600" />
@@ -198,9 +216,9 @@
                 />
               </label>
 
-              <p v-if="projectError" class="flex items-start gap-1.5 text-sm text-rose-600">
+              <p v-if="createErrorMsg" class="flex items-start gap-1.5 text-sm text-rose-600">
                 <UIcon name="i-heroicons-exclamation-circle" class="mt-0.5 h-4 w-4 shrink-0" />
-                {{ projectError }}
+                {{ createErrorMsg }}
               </p>
 
               <UButton
@@ -217,9 +235,20 @@
           </div>
 
           <div class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-            <div class="flex items-center gap-2">
-              <UIcon name="i-heroicons-magnifying-glass-circle" class="h-5 w-5 text-emerald-600" />
-              <h2 class="text-lg font-semibold text-slate-950">快速單次檢測</h2>
+            <div class="flex items-center justify-between gap-3">
+              <div class="flex items-center gap-2">
+                <UIcon name="i-heroicons-magnifying-glass-circle" class="h-5 w-5 text-emerald-600" />
+                <h2 class="text-lg font-semibold text-slate-950">快速單次檢測</h2>
+              </div>
+              <UButton
+                color="neutral"
+                variant="ghost"
+                size="sm"
+                icon="i-heroicons-clock"
+                @click="navigateTo('/history')"
+              >
+                查看歷史紀錄
+              </UButton>
             </div>
             <p class="mt-2 text-sm text-slate-500">
               不建立專案，直接使用現有 discover 流程掃描網站。
@@ -306,7 +335,8 @@ const remaining = computed(() => Math.max(0, limit.value - used.value))
 
 const projects = ref<ProjectSummary[]>([])
 const projectsPending = ref(true)
-const projectError = ref('')
+const projectListError = ref('')
+const createErrorMsg = ref('')
 const creatingProject = ref(false)
 
 const projectForm = reactive({
@@ -366,7 +396,7 @@ async function loadUsage() {
 
 async function loadProjects() {
   projectsPending.value = true
-  projectError.value = ''
+  projectListError.value = ''
 
   const token = await getToken()
   if (!token) {
@@ -380,7 +410,7 @@ async function loadProjects() {
     })
     projects.value = data.projects
   } catch (error: any) {
-    projectError.value = error?.data?.message || error?.message || '讀取專案失敗'
+    projectListError.value = error?.data?.message || error?.message || '讀取專案失敗'
     projects.value = []
   } finally {
     projectsPending.value = false
@@ -391,7 +421,7 @@ async function createProject() {
   if (!canCreateProject.value) return
 
   creatingProject.value = true
-  projectError.value = ''
+  createErrorMsg.value = ''
 
   try {
     const token = await getToken()
@@ -417,7 +447,7 @@ async function createProject() {
     competitorsText.value = ''
     await loadProjects()
   } catch (error: any) {
-    projectError.value = error?.data?.message || error?.message || '建立專案失敗'
+    createErrorMsg.value = error?.data?.message || error?.message || '建立專案失敗'
   } finally {
     creatingProject.value = false
   }
