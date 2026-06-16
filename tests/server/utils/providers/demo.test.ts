@@ -1,4 +1,7 @@
 import { describe, expect, it } from 'vitest'
+import { getDemoAhrefsSnapshot } from '../../../../server/utils/providers/ahrefs/demo'
+import { getDemoGscSnapshot } from '../../../../server/utils/providers/gsc/demo'
+import { getDemoCrawlerSnapshot } from '../../../../server/utils/providers/crawler/demo'
 import { isSnapshotStale, toProviderSnapshotRow } from '../../../../server/utils/providers/shared/snapshot'
 
 interface NamedSnapshot {
@@ -53,5 +56,33 @@ describe('provider snapshot helpers', () => {
     })
 
     expect(row.data.domainRating).toBe(42)
+  })
+})
+
+describe('demo providers', () => {
+  it('returns deterministic Ahrefs demo data', () => {
+    const result = getDemoAhrefsSnapshot('https://example.com', new Date('2026-06-16T00:00:00.000Z'), 24)
+
+    expect(result.provider).toBe('ahrefs')
+    expect(result.mode).toBe('demo')
+    expect(result.status).toBe('ready')
+    expect(result.data.domainRating).toBeGreaterThan(0)
+    expect(result.data.topPages[0].url).toContain('example.com')
+  })
+
+  it('returns deterministic GSC demo data', () => {
+    const result = getDemoGscSnapshot('https://example.com', new Date('2026-06-16T00:00:00.000Z'), 24)
+
+    expect(result.provider).toBe('gsc')
+    expect(result.data.topQueries[0].query).toContain('example')
+    expect(result.data.ctr).toBeGreaterThan(0)
+  })
+
+  it('returns deterministic crawler demo data', () => {
+    const result = getDemoCrawlerSnapshot('https://example.com', new Date('2026-06-16T00:00:00.000Z'), 24)
+
+    expect(result.provider).toBe('crawler')
+    expect(result.data.crawledUrls).toBeGreaterThan(0)
+    expect(result.data.topIssues.length).toBeGreaterThan(0)
   })
 })
